@@ -1,3 +1,6 @@
 *.pyc
 .git/*
 .idea/*
+*.back
+*~
+nohup*

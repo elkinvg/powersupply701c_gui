@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>466</width>
-    <height>254</height>
+    <width>481</width>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="TaurusLed" name="taurusLed">
+   <widget class="TaurusLed" name="statusLed">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>0</y>
+      <x>380</x>
+      <y>20</y>
       <width>61</width>
       <height>61</height>
      </rect>
@@ -27,11 +27,11 @@
      <string>green</string>
     </property>
    </widget>
-   <widget class="TaurusWheelEdit" name="taurusWheelEdit">
+   <widget class="TaurusWheelEdit" name="voltageWheelEdit">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>40</y>
+      <x>270</x>
+      <y>30</y>
       <width>58</width>
       <height>49</height>
      </rect>
@@ -55,9 +55,9 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>50</y>
-      <width>81</width>
+      <x>80</x>
+      <y>30</y>
+      <width>51</width>
       <height>41</height>
      </rect>
     </property>
@@ -68,14 +68,37 @@
      <enum>Qt::AutoText</enum>
     </property>
    </widget>
-   <widget class="TaurusLabel" name="taurusLabel">
+   <widget class="TaurusLabel" name="voltageLabel">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>40</y>
+      <x>200</x>
+      <y>20</y>
       <width>42</width>
       <height>49</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="outputEdit">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>80</y>
+      <width>411</width>
+      <height>81</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="TaurusCommandButton" name="reconnectButton">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>170</y>
+      <width>111</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Reconnect</string>
     </property>
    </widget>
   </widget>
@@ -84,7 +107,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>466</width>
+     <width>481</width>
      <height>23</height>
     </rect>
    </property>
@@ -101,6 +124,11 @@
    <class>TaurusLabel</class>
    <extends>QLabel</extends>
    <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusCommandButton</class>
+   <extends>QPushButton</extends>
+   <header>taurus.qt.qtgui.button</header>
   </customwidget>
   <customwidget>
    <class>TaurusLed</class>
