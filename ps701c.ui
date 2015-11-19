@@ -30,7 +30,7 @@
    <widget class="TaurusWheelEdit" name="voltageWheelEdit">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>230</x>
       <y>30</y>
       <width>58</width>
       <height>49</height>
@@ -55,7 +55,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>30</x>
       <y>30</y>
       <width>51</width>
       <height>41</height>
@@ -71,8 +71,8 @@
    <widget class="TaurusLabel" name="voltageLabel">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>20</y>
+      <x>120</x>
+      <y>30</y>
       <width>42</width>
       <height>49</height>
      </rect>
@@ -87,13 +87,16 @@
       <height>81</height>
      </rect>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
-   <widget class="TaurusCommandButton" name="reconnectButton">
+   <widget class="QPushButton" name="reconnectButton">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>350</x>
       <y>170</y>
-      <width>111</width>
+      <width>85</width>
       <height>27</height>
      </rect>
     </property>
@@ -101,16 +104,19 @@
      <string>Reconnect</string>
     </property>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>481</width>
-     <height>23</height>
-    </rect>
-   </property>
+   <widget class="QPushButton" name="setButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>170</y>
+      <width>85</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Settings</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
@@ -124,11 +130,6 @@
    <class>TaurusLabel</class>
    <extends>QLabel</extends>
    <header>taurus.qt.qtgui.display</header>
-  </customwidget>
-  <customwidget>
-   <class>TaurusCommandButton</class>
-   <extends>QPushButton</extends>
-   <header>taurus.qt.qtgui.button</header>
   </customwidget>
   <customwidget>
    <class>TaurusLed</class>
