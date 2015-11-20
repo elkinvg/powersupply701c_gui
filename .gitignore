@@ -4,3 +4,4 @@
 *.back
 *~
 nohup*
+tst/*

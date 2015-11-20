@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'ps701c.ui'
@@ -9,7 +10,7 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import QObject, pyqtSlot
-import PyTango
+import dialogParameter
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -70,7 +71,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         #elkin
         #self.connect(self.reconnectButton,QtCore.SIGNAL('clicked()'),self,QtCore.SLOT('testSlot()'))
-        self.connect(self.reconnectButton,QtCore.SIGNAL('clicked()'),self.testSlot)
+        self.connect(self.reconnectButton, QtCore.SIGNAL('clicked()'), self.showDialog)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
@@ -78,6 +79,21 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.measLabel.setText(_translate("MainWindow", " 99.99", None))
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
         self.setButton.setText(_translate("MainWindow", "Settings", None))
+
+    def showDialog(self):
+        dial = dialogParameter.SettingsDialog(self)
+        dial.show()
+        if dial.exec_():
+            text = dial.getValue()
+            print "exec"
+            #s = "text:" + text[1]
+            print text
+        #text = dial.getValue()
+        #print text
+        # text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
+        #
+        # if ok:
+        #     self.outputEdit.append(text)
 
     #@QtCore.pyqtSlot(object)
     @pyqtSlot()
