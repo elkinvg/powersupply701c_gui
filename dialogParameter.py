@@ -1,49 +1,71 @@
 import sys
-from PyQt4 import QtGui
-from PyQt4 import QtCore
-from mercurial.changegroup import nocompress
+#from PyQt4 import QtGui
+from PyQt4.QtGui import QDialogButtonBox, QDialog, QWidget
+from PyQt4.QtGui import QLineEdit, QLabel
+from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QFont
+from PyQt4.QtCore import Qt, QString
+#from mercurial.changegroup import nocompress
 
 
-class SettingsDialog(QtGui.QDialog):
+class SettingsDialog(QDialog):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QWidget.__init__(self, parent)
         #self.setGeometry(300, 300, 350, 80)
-        self.setFixedSize(300, 300)
+        vertLayout = QVBoxLayout(self)
+        layoutup = QHBoxLayout()
+        layoutdown = QHBoxLayout()
+
+        self.setFixedSize(400, 200)
         self.setWindowTitle('InputDialog')
-        self.button = QtGui.QPushButton('Dialog', self)
-        self.socketName = QtGui.QLineEdit()
-        self.nameOfServLabel = QtGui.QLabel('Server name')
-        #self.nameOfServLabel.text('Server name')
-        #self.socketName = QtGui.QTextLine()
-        self.button.setFocusPolicy(QtCore.Qt.NoFocus)
 
-        self.layoutup = QtGui.QHBoxLayout(self)
-        self.layoutup.addWidget(self.nameOfServLabel)
-        self.layoutup.addWidget(self.socketName)
+        # self.buttonOk = QtGui.QPushButton('Ok', self)
+        # self.buttonCancel = QtGui.QPushButton('Cancel',self)
+        self.buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal
+        )
 
-        self.layoutdown = QtGui.QHBoxLayout(self)
-        self.layoutdown.addWidget(self.button)
+        self.socketName = QLineEdit()
+        self.nameOfServLabel = QLabel('Server name')
 
-        self.vertLayout = QtGui.QVBoxLayout(self)
-        self.vertLayout.addLayout(self.layoutup)
-        self.vertLayout.addLayout(self.layoutdown)
+        font = QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        self.infoLabel = QLabel();
+        self.infoLabel.setFont(font)
+        textLabel = "<font color = red>"
+        textLabel += "Enter device name for PowerSupply "
+        textLabel += "in format \"domain/family/member\" <br>"
+        textLabel += "Example: powersupply/ps701c/1"
+        textLabel += "<\font>"
+        self.infoLabel.setWordWrap(True)
+        self.infoLabel.setText(textLabel)
+
+
+        layoutup.addWidget(self.nameOfServLabel)
+        layoutup.addWidget(self.socketName)
+
+        layoutdown.addStretch(1)
+        layoutdown.addWidget(self.buttons)
+
+        vertLayout.addWidget(self.infoLabel)
+        vertLayout.addLayout(layoutup)
+        vertLayout.addLayout(layoutdown)
 
         self.setModal(True)
-        self.button.clicked.connect(self.getValue)
+
+        # self.buttons.accepted.connect(self.getValue)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+        #self.button.clicked.connect(self.getValue)
+
+        # cw = QtGui.QWidget()
+        # cw.setLayout(vertLayout)
         # self.connect(self.button, QtCore.SIGNAL('clicked()'), self.getValue)
 
     def getValue(self):
-        self.accept()
-        print("ssss")
-        #self.close()
         getText = self.socketName.text()
-        noText = "dfdf"
-
-        # list = []
-        # list.append(getText)
-        # list.append('qqq')
-        # list.append('zzz')
-        return getText,noText
+        return getText
 
 
 # class InputDialog(QtGui.QWidget):
