@@ -34,9 +34,9 @@ class SettingsDialog(QDialog):
         self.infoLabel = QLabel();
         self.infoLabel.setFont(font)
         textLabel = "<font color = red>"
-        textLabel += "Enter device name for PowerSupply "
+        textLabel += "Enter device name of Socket for PowerSupply "
         textLabel += "in format \"domain/family/member\" <br>"
-        textLabel += "Example: powersupply/ps701c/1"
+        textLabel += "Example: socket/sock_ps701/1"
         textLabel += "<\font>"
         self.infoLabel.setWordWrap(True)
         self.infoLabel.setText(textLabel)
@@ -59,40 +59,10 @@ class SettingsDialog(QDialog):
         self.buttons.rejected.connect(self.reject)
         #self.button.clicked.connect(self.getValue)
 
-        # cw = QtGui.QWidget()
-        # cw.setLayout(vertLayout)
-        # self.connect(self.button, QtCore.SIGNAL('clicked()'), self.getValue)
 
     def getValue(self):
         getText = self.socketName.text()
         return getText
 
-
-# class InputDialog(QtGui.QWidget):
-#     def __init__(self, parent=None):
-#         QtGui.QWidget.__init__(self, parent)
-#
-#         self.setGeometry(300, 300, 350, 80)
-#         self.setWindowTitle('InputDialog')
-#
-#         self.button = QtGui.QPushButton('Dialog', self)
-#         self.button.setFocusPolicy(QtCore.Qt.NoFocus)
-#
-#         self.button.move(20, 20)
-#         self.connect(self.button, QtCore.SIGNAL('clicked()'), self.showDialog)
-#         self.setFocus()
-#
-#         self.label = QtGui.QLineEdit(self)
-#         self.label.move(130, 22)
-#
-#
-#     def showDialog(self):
-#         text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
-#
-#         if ok:
-#             self.label.setText(unicode(text))
-#
-# app = QtGui.QApplication(sys.argv)
-# icon = InputDialog()
-# icon.show()
-# app.exec_()
+    def setDefaultValue(self,text):
+        self.socketName.setText(QString(text))

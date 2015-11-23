@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'ps701c.ui'
@@ -9,10 +10,16 @@
 
 from PyQt4 import QtCore, QtGui
 import PyTango
+from PyTango import Except
+from logilab.common.fileutils import lines
+
 from dialogParameter import SettingsDialog
+from datetime import datetime
+import os.path
 #from taurus.qt.qtgui.button import TaurusCommandButton
 
-devName = "sock/pssocket/1"
+#devName = "sock/pssocket/1"
+fileCfg = "devsockets.cfg"
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -70,6 +77,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.settingsButton = QtGui.QPushButton(self.centralwidget)
         self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
 
+        #clicked connect
+        self.settingsButton.clicked.connect(self.showDialog)
+
 
         MainWindow.setCentralWidget(self.centralwidget)
         #self.menubar = QtGui.QMenuBar(MainWindow)
@@ -105,7 +115,45 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget = MainWindow.centralWidget()
         centralWidget.setLayout(mainLayout)
 
-        self.showDialog()
+        self.devices = list() # list of names of devices
+        self.tangoDevices = list() # list of tango-devices
+        #self.devicesState = list() # list of statuses of devices
+
+        if os.path.exists(fileCfg):
+            try:
+                file = open(fileCfg,"r")
+                lines = file.readlines()
+                file.close()
+                print "Lines: " + str(len(lines)) # ??? debug
+                if len(lines) > 0:
+                    lineDevName = lines[0] # ??? debug if lenth >1
+                    print(lineDevName)
+                    splitLine = lineDevName.split("=")
+                    if len(splitLine) != 2:
+                        #self.printMessageToOutputEdit("Incorrect format of configfile")
+                        self.showDialog()
+                    else:
+                        self.devices.append(splitLine[1])
+                        print "dev: "
+                        print self.devices[0]
+                        MainWindow.setWindowTitle(
+                            _translate(self.devices[0],
+                                       self.devices[0],
+                                       None)
+                        )
+                        self.initDevices()
+                        #self.runDevice()
+                else:
+                    self.showDialog()
+
+            except IOError as e:
+                self.printMessageToOutputEdit(str(e))
+        else:
+            self.showDialog()
+
+
+
+        # self.checkStatus("1")
 
         #MainWindow.setLayout(mainLayout)
 
@@ -125,6 +173,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         # but = self.reconnectButton
         # but.setCommand("Status")
         # but.setModel("sock/pssocket/1")
+        # with open('Failed.py', 'w') as file_:
+        #     file_.write('whatever')
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
@@ -133,19 +183,77 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
         self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
-    def checkStatus(self, MainWindow):
-        device = PyTango.DeviceProxy(devName) # ??????? Debug. Get name of proxy from settings
-        mes = device.state()
-        mes2 = device.status()
+    def runDevice(self):
+        print "Number of active devices: " + str(len(self.devices))
+        self.checkStatus(self.devices[0])
+
+    def initDevices(self):
+        if len(self.devices) < 1:
+            return
+        print "Number of devices: " + str(len(self.devices))
+        try: # for one device
+            print("Device: -> " + self.devices[0])
+            deviceTan = PyTango.DeviceProxy(self.devices[0])
+            if deviceTan.state() == PyTango.DevState.OFF:
+                #mes = self.devices[0] + " is OFF"
+                mes = deviceTan.status()
+                self.printMessageToOutputEdit(mes)
+                self.statusLed.setLedColor("white")
+                self.voltageWheelEdit.setEnabled(False)
+            elif deviceTan.state() == PyTango.DevState.FAULT:
+                mes = deviceTan.status()
+                self.printMessageToOutputEdit(mes)
+                self.statusLed.setLedColor("red")
+                self.voltageWheelEdit.setEnabled(False)
+            elif deviceTan.state() == PyTango.DevState.ON:
+                # mes = self.devices[0] + " is ON"
+                mes = deviceTan.status()
+                self.printMessageToOutputEdit(mes)
+                self.statusLed.setLedColor("green")
+                self.voltageWheelEdit.setEnabled(True)
+
+            self.tangoDevices.append(deviceTan)
+        except PyTango.DevFailed as exc:
+            self.printMessageToOutputEdit(str(exc))
+
+
+    # def checkStatus(self, devName):
+    #     try:
+    #         device = PyTango.DeviceProxy(str(devName)) # ??????? Debug. Get name of proxy from settings
+    #         # device = PyTango.DeviceProxy("sock/pssocketaa/1")
+    #
+    #         # self.devicesState[0] = device.state()
+    #         mes2 = device.status()
+    #         #print "State: " + mes
+    #         print "Status: " + mes2
+    #         self.tangoDevices.append(device)
+    #     except PyTango.DevFailed as exc:
+    #         self.printMessageToOutputEdit(str(exc))
+
+    def addDeviceToCfgFile(self,devName): # ??? for many devices
+        with open(fileCfg,"w") as fileWrite:
+                fileWrite.write(str("[sock0]=" +devName))
+
+
+    def printMessageToOutputEdit(self, message):
+        dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+        self.outputEdit.append("<b>" + dateTime + "</b>")
+        excMes = "Exception message: " + message
+        self.outputEdit.append(excMes)
+
+
 
     def showDialog(self):
         dial = SettingsDialog(self)
+        if (len(self.devices)!=0):
+            dial.setDefaultValue(self.devices[0])
         dial.show()
 
         if dial.exec_():
             text = dial.getValue()
-            print "EXEC"
-            print text
+            MainWindow.setWindowTitle(_translate(text, text, None))
+            self.addDeviceToCfgFile(text)
+
         else:
             print "ELSE"
 
