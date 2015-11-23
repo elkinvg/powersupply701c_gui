@@ -38,41 +38,40 @@ except AttributeError:
 class Ui_MainWindow(QtGui.QMainWindow):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
+        #MainWindow.resize(481, 250)
         MainWindow.setFixedSize(481, 250) #elkin
-
-        self.devices = list() # list of names of devices
-        self.tangoDevices = list() # list of tango-devices
-        #self.devicesState = list() # list of statuses of devices
-
-
-
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-
+        #self.statusLed = TaurusLed(self.centralwidget)
         self.statusLed = TaurusLed()
+        #self.statusLed.setGeometry(QtCore.QRect(380, 20, 61, 61))
         self.statusLed.setObjectName(_fromUtf8("statusLed"))
-
+        #self.voltageWheelEdit = TaurusWheelEdit(self.centralwidget)
         self.voltageWheelEdit = TaurusWheelEdit()
+        #self.voltageWheelEdit.setGeometry(QtCore.QRect(270, 30, 58, 49))
         self.voltageWheelEdit.setProperty("integerDigits", 3)
         self.voltageWheelEdit.setProperty("decimalDigits", 0)
         self.voltageWheelEdit.setMinValue(0.0)
         self.voltageWheelEdit.setMaxValue(500.0)
         self.voltageWheelEdit.setObjectName(_fromUtf8("voltageWheelEdit"))
-
+        #self.measLabel = TaurusLabel(self.centralwidget)
         self.measLabel = TaurusLabel()
         self.measLabel.setEnabled(True)
+        #self.measLabel.setGeometry(QtCore.QRect(80, 30, 51, 41))
         self.measLabel.setTextFormat(QtCore.Qt.AutoText)
         self.measLabel.setObjectName(_fromUtf8("measLabel"))
-
+        #self.voltageLabel = TaurusLabel(self.centralwidget)
         self.voltageLabel = TaurusLabel()
+        #self.voltageLabel.setGeometry(QtCore.QRect(200, 20, 42, 49))
         self.voltageLabel.setObjectName(_fromUtf8("voltageLabel"))
-
+        #self.outputEdit = QtGui.QTextEdit(self.centralwidget)
         self.outputEdit = QtGui.QTextEdit()
         self.outputEdit.setGeometry(QtCore.QRect(30, 80, 411, 81))
         self.outputEdit.setObjectName(_fromUtf8("outputEdit"))
         self.outputEdit.setReadOnly(True)
-
         self.reconnectButton = TaurusCommandButton(self.centralwidget)
+        #self.reconnectButton.setMinimumWidth(100)
+        #self.reconnectButton.setGeometry(QtCore.QRect(330, 170, 111, 27))
         self.reconnectButton.setObjectName(_fromUtf8("reconnectButton"))
 
         self.settingsButton = QtGui.QPushButton(self.centralwidget)
@@ -80,7 +79,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         #clicked connect
         self.settingsButton.clicked.connect(self.showDialog)
-
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -118,57 +116,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget = MainWindow.centralWidget()
         centralWidget.setLayout(mainLayout)
 
-        self.checkCfgFile()
+        self.devices = list() # list of names of devices
+        self.tangoDevices = list() # list of tango-devices
+        #self.devicesState = list() # list of statuses of devices
 
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-        self.statusLed.setLedColor(_translate("MainWindow", "green", None))
-        self.measLabel.setText(_translate("MainWindow", " 99.99", None))
-        self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
-        self.settingsButton.setText(_translate("MainWindow","Settings",None))
-
-    def runDevice(self):
-        print "Number of active devices: " + str(len(self.devices))
-        self.checkStatus(self.devices[0])
-
-    def checkCfgFile(self):
-        isCorrect = True
-        if os.path.exists(fileCfg):
-            try:
-                file = open(fileCfg,"r")
-                lines = file.readlines()
-                file.close()
-                print "Lines: " + str(len(lines)) # ??? debug
-                if len(lines) > 0:
-                    for line in lines:
-                        lineDevName = line # ??? debug if lenth >1
-                        print(lineDevName)
-                        splitLine = lineDevName.split("=")
-                        if len(splitLine) != 2:
-                            isCorrect = False
-                            continue
-                            #self.printMessageToOutputEdit("Incorrect format of configfile")
-
-                        else:
-                            self.devices.append(splitLine[1])
-                            # print "dev_: "
-
-                    if(isCorrect==False):
-                        self.showDialog()
-                        return
-
-                    print self.devices[0]
-                    self.initDevices()
-                            #self.runDevice()
-                else:
-                    self.showDialog()
-
-            except IOError as e:
-                self.printMessageToOutputEdit(str(e))
-        else:
-            self.showDialog()
-
-    def checkCfgFiles(self):
         if os.path.exists(fileCfg):
             try:
                 file = open(fileCfg,"r")
@@ -200,6 +151,17 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.printMessageToOutputEdit(str(e))
         else:
             self.showDialog()
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.statusLed.setLedColor(_translate("MainWindow", "green", None))
+        self.measLabel.setText(_translate("MainWindow", " 99.99", None))
+        self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
+        self.settingsButton.setText(_translate("MainWindow","Settings",None))
+
+    def runDevice(self):
+        print "Number of active devices: " + str(len(self.devices))
+        self.checkStatus(self.devices[0])
 
     def initDevices(self):
         if len(self.devices) < 1:
