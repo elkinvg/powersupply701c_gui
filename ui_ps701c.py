@@ -44,28 +44,36 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.tangoDevices = list() # list of tango-devices
         #self.devicesState = list() # list of statuses of devices
 
+        self.checkCfgFile()
+
+        if (len(self.devices)<1):
+            print "Devices < than 1"
+            self.showDialog()
+        else:
+            self.statusLed = list()
+            self.voltageWheelEdit = list()
+            self.measLabel = list()
+            self.voltageLabel = list()
+
+            for i in range(0,len(self.devices)):
+                self.statusLed.append(TaurusLed())
+
+                self.voltageWheelEdit.append(TaurusWheelEdit())
+                self.voltageWheelEdit[i].setProperty("integerDigits", 3)
+                self.voltageWheelEdit[i].setProperty("decimalDigits", 0)
+                self.voltageWheelEdit[i].setMinValue(0.0)
+                self.voltageWheelEdit[i].setMaxValue(500.0)
+
+                self.measLabel.append(TaurusLabel())
+                self.measLabel[i].setEnabled(True)
+                self.measLabel[i].setTextFormat(QtCore.Qt.AutoText)
+
+                self.voltageLabel.append(TaurusLabel())
 
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
 
-        self.statusLed = TaurusLed()
-        self.statusLed.setObjectName(_fromUtf8("statusLed"))
-
-        self.voltageWheelEdit = TaurusWheelEdit()
-        self.voltageWheelEdit.setProperty("integerDigits", 3)
-        self.voltageWheelEdit.setProperty("decimalDigits", 0)
-        self.voltageWheelEdit.setMinValue(0.0)
-        self.voltageWheelEdit.setMaxValue(500.0)
-        self.voltageWheelEdit.setObjectName(_fromUtf8("voltageWheelEdit"))
-
-        self.measLabel = TaurusLabel()
-        self.measLabel.setEnabled(True)
-        self.measLabel.setTextFormat(QtCore.Qt.AutoText)
-        self.measLabel.setObjectName(_fromUtf8("measLabel"))
-
-        self.voltageLabel = TaurusLabel()
-        self.voltageLabel.setObjectName(_fromUtf8("voltageLabel"))
 
         self.outputEdit = QtGui.QTextEdit()
         self.outputEdit.setGeometry(QtCore.QRect(30, 80, 411, 81))
@@ -84,13 +92,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
 
         MainWindow.setCentralWidget(self.centralwidget)
-        #self.menubar = QtGui.QMenuBar(MainWindow)
-        #self.menubar.setGeometry(QtCore.QRect(0, 0, 481, 23))
-        #self.menubar.setObjectName(_fromUtf8("menubar"))
-        #MainWindow.setMenuBar(self.menubar)
-        #self.statusbar = QtGui.QStatusBar(MainWindow)
-        #self.statusbar.setObjectName(_fromUtf8("statusbar"))
-        #MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -98,32 +99,42 @@ class Ui_MainWindow(QtGui.QMainWindow):
         #elkin
         mainLayout = QtGui.QVBoxLayout()
 
-        htopLayout = QtGui.QHBoxLayout()
-        htopLayout.addWidget(self.measLabel)
-        htopLayout.addWidget(self.voltageLabel)
-        htopLayout.addWidget(self.voltageWheelEdit)
-        htopLayout.addStretch(1)
-        htopLayout.addWidget(self.statusLed)
+        htopLayout=list()
+
+        for i in range(0,len(self.devices)):
+            htopLayout.append(QtGui.QHBoxLayout())
+            htopLayout[i].addWidget(self.measLabel[i])
+            htopLayout[i].addWidget(self.voltageLabel[i])
+            htopLayout[i].addWidget(self.voltageWheelEdit[i])
+            htopLayout[i].addStretch(1)
+            htopLayout[i].addWidget(self.statusLed[i])
 
         hbottomLayout = QtGui.QHBoxLayout()
         hbottomLayout.addStretch(1)
-        hbottomLayout.addWidget(self.settingsButton)
+        hbottomLayout.addWidget(self.settingsButton )
         hbottomLayout.addWidget(self.reconnectButton)
-        #hbottomLayout.addWidget(self.setB)
 
-        mainLayout.addLayout(htopLayout)
+        for i in range(0,len(self.devices)):
+            mainLayout.addLayout(htopLayout[i])
+
+        #mainLayout.addLayout(htopLayout)
         mainLayout.addWidget(self.outputEdit)
         mainLayout.addLayout(hbottomLayout)
 
         centralWidget = MainWindow.centralWidget()
         centralWidget.setLayout(mainLayout)
 
-        self.checkCfgFile()
+        self.initDevices()
+
+        #self.checkCfgFile()
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-        self.statusLed.setLedColor(_translate("MainWindow", "green", None))
-        self.measLabel.setText(_translate("MainWindow", " 99.99", None))
+
+        for i in range(0,len(self.devices)):
+            self.statusLed[i].setLedColor(_translate("MainWindow", "green", None))
+            self.measLabel[i].setText(_translate("MainWindow", " 99.99", None))
+
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
         self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
@@ -132,7 +143,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkStatus(self.devices[0])
 
     def checkCfgFile(self):
-        isCorrect = True
+        #isCorrect = True
         if os.path.exists(fileCfg):
             try:
                 file = open(fileCfg,"r")
@@ -142,57 +153,26 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 if len(lines) > 0:
                     for line in lines:
                         lineDevName = line # ??? debug if lenth >1
-                        print(lineDevName)
                         splitLine = lineDevName.split("=")
-                        if len(splitLine) != 2:
-                            isCorrect = False
+                        if len(splitLine) >3: # ???
+                            #isCorrect = False
                             continue
                             #self.printMessageToOutputEdit("Incorrect format of configfile")
 
                         else:
-                            self.devices.append(splitLine[1])
-                            # print "dev_: "
+                            if (splitLine[0]=="[sock]"):
+                                self.devices.append(splitLine[1])
+                                # print "dev_: "
 
-                    if(isCorrect==False):
+
+                    #if(isCorrect==False):
+                    if(len(self.devices)==0):
                         self.showDialog()
                         return
 
                     print self.devices[0]
-                    self.initDevices()
+                    #self.initDevices()
                             #self.runDevice()
-                else:
-                    self.showDialog()
-
-            except IOError as e:
-                self.printMessageToOutputEdit(str(e))
-        else:
-            self.showDialog()
-
-    def checkCfgFiles(self):
-        if os.path.exists(fileCfg):
-            try:
-                file = open(fileCfg,"r")
-                lines = file.readlines()
-                file.close()
-                print "Lines: " + str(len(lines)) # ??? debug
-                if len(lines) > 0:
-                    lineDevName = lines[0] # ??? debug if lenth >1
-                    print(lineDevName)
-                    splitLine = lineDevName.split("=")
-                    if len(splitLine) != 2:
-                        #self.printMessageToOutputEdit("Incorrect format of configfile")
-                        self.showDialog()
-                    else:
-                        self.devices.append(splitLine[1])
-                        print "dev: "
-                        print self.devices[0]
-                        MainWindow.setWindowTitle(
-                            _translate(self.devices[0],
-                                       self.devices[0],
-                                       None)
-                        )
-                        self.initDevices()
-                        #self.runDevice()
                 else:
                     self.showDialog()
 
@@ -205,32 +185,34 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if len(self.devices) < 1:
             return
         print "Number of devices: " + str(len(self.devices))
-        try: # for one device
-            print("Device: -> " + self.devices[0])
-            deviceTan = PyTango.DeviceProxy(self.devices[0])
-            if deviceTan.state() == PyTango.DevState.OFF:
-                #mes = self.devices[0] + " is OFF"
-                mes = deviceTan.status()
-                self.printMessageToOutputEdit(mes)
-                self.statusLed.setLedColor("white")
-                self.voltageWheelEdit.setEnabled(False)
-            elif deviceTan.state() == PyTango.DevState.FAULT:
-                mes = deviceTan.status()
-                self.printMessageToOutputEdit(mes)
-                self.statusLed.setLedColor("red")
-                self.voltageWheelEdit.setEnabled(False)
-            elif deviceTan.state() == PyTango.DevState.ON:
-                # mes = self.devices[0] + " is ON"
-                mes = deviceTan.status()
-                self.printMessageToOutputEdit(mes)
-                self.statusLed.setLedColor("green")
-                self.voltageWheelEdit.setEnabled(True)
 
-            self.tangoDevices.append(deviceTan)
-        except PyTango.DevFailed as exc:
-            self.statusLed.setLedColor("red")
-            self.voltageWheelEdit.setEnabled(False)
-            self.printMessageToOutputEdit(str(exc))
+        for i in range(0,len(self.devices)):
+            try:
+                print("Device: -> " + self.devices[i])
+                deviceTan = PyTango.DeviceProxy(self.devices[i])
+                if deviceTan.state() == PyTango.DevState.OFF:
+                    #mes = self.devices[0] + " is OFF"
+                    mes = deviceTan.status()
+                    self.printMessageToOutputEdit(mes)
+                    self.statusLed[i].setLedColor("white")
+                    self.voltageWheelEdit[i].setEnabled(False)
+                elif deviceTan.state() == PyTango.DevState.FAULT:
+                    mes = deviceTan.status()
+                    self.printMessageToOutputEdit(mes)
+                    self.statusLed[i].setLedColor("red")
+                    self.voltageWheelEdit[i].setEnabled(False)
+                elif deviceTan.state() == PyTango.DevState.ON:
+                    # mes = self.devices[0] + " is ON"
+                    mes = deviceTan.status()
+                    self.printMessageToOutputEdit(mes)
+                    self.statusLed[i].setLedColor("green")
+                    self.voltageWheelEdit[i].setEnabled(True)
+                self.tangoDevices.append(deviceTan)
+            except PyTango.DevFailed as exc: #??? вылетает даже если только один из девайсов глючит
+                # for i in range(0,len(self.devices)):
+                self.statusLed[i].setLedColor("red")
+                self.voltageWheelEdit[i].setEnabled(False)
+                self.printMessageToOutputEdit(str(exc))
 
 
     # def checkStatus(self, devName):
@@ -248,7 +230,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def addDeviceToCfgFile(self,devName): # ??? for many devices
         with open(fileCfg,"w") as fileWrite:
-                fileWrite.write(str("[sock0]=" +devName))
+                fileWrite.write(str("[sock]=" +devName+"="))
 
 
     def printMessageToOutputEdit(self, message):
