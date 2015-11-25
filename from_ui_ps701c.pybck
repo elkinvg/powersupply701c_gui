@@ -1,0 +1,64 @@
+def checkCfgFile(self):
+#isCorrect = True
+if os.path.exists(fileCfg):
+    try:
+        file = open(fileCfg,"r")
+        lines = file.readlines()
+        file.close()
+        print "Lines: " + str(len(lines)) # ??? debug
+        if len(lines) > 0:
+            for line in lines:
+                lineDevName = line # ??? debug if lenth >1
+                splitLine = lineDevName.split("=")
+                if len(splitLine) >3: # ???
+                    #isCorrect = False
+                    continue
+                    #self.printMessageToOutputEdit("Incorrect format of configfile")
+
+                else:
+                    if (splitLine[0]=="[sock]"):
+                        self.devices.append(splitLine[1])
+                        # print "dev_: "
+
+
+            #if(isCorrect==False):
+            if(len(self.devices)==0):
+                self.showDialog()
+                return
+
+            print self.devices[0]
+            #self.initDevices()
+                    #self.runDevice()
+        else:
+            self.showDialog()
+
+    except IOError as e:
+        self.printMessageToOutputEdit(str(e))
+else:
+    self.showDialog()
+
+def checkStatus(self, devName):
+    try:
+        device = PyTango.DeviceProxy(str(devName)) # ??????? Debug. Get name of proxy from settings
+        # device = PyTango.DeviceProxy("sock/pssocketaa/1")
+
+        # self.devicesState[0] = device.state()
+        mes2 = device.status()
+        #print "State: " + mes
+        print "Status: " + mes2
+        self.tangoDevices.append(device)
+    except PyTango.DevFailed as exc:
+        self.printMessageToOutputEdit(str(exc))
+
+def forMoreThan10Devices(self):
+    return
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    MainWindow = QtGui.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

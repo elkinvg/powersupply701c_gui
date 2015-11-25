@@ -8,7 +8,6 @@ from PyQt4 import QtGui
 # from datetime import datetime
 import os.path
 import ui_ps701c
-import tst
 
 fileCfg = "devsockets.cfg"
 
@@ -34,43 +33,12 @@ def checkCfgFile():
                         else:
                             if (splitLine[0]=="[sock]"):
                                 devices.append(splitLine[1])
-                                # print "dev_: "
-
-
-                    #if(isCorrect==False):
-                    # if(len(devices)==0):
-                    #     showDialog()
-                    #     return
-
-                    print devices[0]
-                    #self.initDevices()
-                            #self.runDevice()
-                # else:
-                #     showDialog()
 
             except IOError as e:
                 #printMessageToOutputEdit(str(e))
                 print("IOERROR")
         # else:
         #     showDialog()
-
-# def showDialog(MainWindow):
-#     #dial = SettingsDialog(MainWindow)
-#     dial =  SettingsDialog()
-#     dial.setupUi(MainWindow)
-#     if (len(devices)!=0):
-#         dial.setDefaultValue(devices[0])
-#     # dial.show()
-#     print "DDD"
-#
-#     if dial.exec_():
-#         print "HHH"
-#         text = dial.getValue()
-#         # MainWindow.setWindowTitle(_translate(text, text, None))
-#         addDeviceToCfgFile(text)
-#         # initDevices()
-#     else:
-#         print "ELSE"
 
 def addDeviceToCfgFile(devName): # ??? for many devices
     with open(fileCfg,"w") as fileWrite:
@@ -87,7 +55,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
 
     checkCfgFile()
-    if len(devices)<1:
+    if len(devices)<11:
         # showDialog(MainWindow)
         # MainWindow.show()
         # ui = SettingsDialog()
@@ -100,13 +68,11 @@ if __name__ == "__main__":
         ui = ui_ps701c.Ui_MainWindow()
         ui.setupUi(MainWindow,devices)
         MainWindow.show()
-
-        print("less than 1")
-        a=1
     else:
+        print("more than 10")
         MainWindow = QtGui.QMainWindow()
-        ui = ui_ps701c.Ui_MainWindow()
-        ui.setupUi(MainWindow,devices)
+        # ui = ui_ps701c.Ui_MainWindow()
+        # ui.setupUi(MainWindow,devices)
         MainWindow.show()
     # ui = Ui_MainWindow()
     # ui.setupUi(MainWindow)

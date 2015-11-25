@@ -15,10 +15,12 @@ from PyTango import Except
 
 from dialogParameter import SettingsDialog
 from datetime import datetime
-import os.path
-#from taurus.qt.qtgui.button import TaurusCommandButton
+# import os.path
+from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
+from taurus.qt.qtgui.input import TaurusWheelEdit
+from taurus.qt.qtgui.button import TaurusCommandButton
+from taurus.qt.qtgui.display import TaurusLCD
 
-#devName = "sock/pssocket/1"
 fileCfg = "devsockets.cfg"
 
 try:
@@ -39,30 +41,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def setupUi(self, MainWindow,devices):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
 
-        #MainWindow.
-
-        #self.devices = list() # list of names of devices
         self.devices = devices
         self.tangoDevices = list() # list of tango-devices
-        #self.devicesState = list() # list of statuses of devices
-
-        # self.checkCfgFile()
-
-        horWinSize = 150 + len(self.devices)*50
-        MainWindow.setFixedSize(481,horWinSize)
-        #MainWindow.setFixedSize(481, 250) #elkin
 
         if (len(self.devices)<1):
             print "Devices < than 1"
             self.showDialog()
-        # elif (len(self.devices)<11):
-        self.forLessThan11Devices(MainWindow)
-        # elif (len(self.devices)>10):
-        #     self.forMoreThan10Devices()
 
-
-    #def forLessThan11Devices(self):
-    def forLessThan11Devices(self,MainWindow):
         self.deviceNameLabel = list()
         self.statusLed = list()
         self.voltageWheelEdit = list()
@@ -99,6 +84,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             textLabel += "<\b><\font>"
 
             self.deviceNameLabel[i].setText(textLabel)
+            # QtGui.QLabel.
+            self.deviceNameLabel[i].setFixedWidth(200)
             # self.deviceNameLabel[i].setText(self.devices[i])
 
         # self.checkCfgFile()
@@ -109,7 +96,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
 
         self.outputEdit = QtGui.QTextEdit()
-        self.outputEdit.setGeometry(QtCore.QRect(30, 80, 411, 81))
+        # self.outputEdit.setGeometry(QtCore.QRect(30, 80, 411, 81))
         self.outputEdit.setObjectName(_fromUtf8("outputEdit"))
         self.outputEdit.setReadOnly(True)
 
@@ -131,18 +118,31 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        #elkin
-        mainLayout = QtGui.QVBoxLayout()
+        self.layouts(MainWindow)
 
-        testLayout = QtGui.QHBoxLayout() # ???
-        #testLayout.setSpacing()
+        # self.centerOnScreen()
+        self.centerOnScreen(MainWindow)
+        self.initDevices()
+
+        horWinSize = 150 + len(self.devices)*50
+        MainWindow.setFixedSize(481,horWinSize)
+        # elif (len(self.devices)>10):
+        #     self.forMoreThan10Devices()
+
+
+    #def forLessThan11Devices(self):
+    # def forLessThan11Devices(self,MainWindow):
+
+    def layouts(self,MainWindow):
+        mainLayout = QtGui.QVBoxLayout()
+        # testLayout = QtGui.QHBoxLayout() # ???
 
         htopLayout=list()
 
         for i in range(0,len(self.devices)):
             htopLayout.append(QtGui.QHBoxLayout())
             htopLayout[i].addWidget(self.deviceNameLabel[i])
-            htopLayout[i].addStretch(1)
+            # htopLayout[i].addStretch(1)
             htopLayout[i].addWidget(self.measLabel[i])
             htopLayout[i].addWidget(self.voltageLabel[i])
             htopLayout[i].addWidget(self.voltageWheelEdit[i])
@@ -164,13 +164,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget = MainWindow.centralWidget()
         centralWidget.setLayout(mainLayout)
 
-        # self.centerOnScreen()
-        self.centerOnScreen(MainWindow)
-        self.initDevices()
-
-    def forMoreThan10Devices(self):
-        return
-
     def centerOnScreen (self,MainWindow):
         resolution = QtGui.QDesktopWidget().screenGeometry()
         MainWindow.move((resolution.width() / 2) - (self.frameSize().width() / 2),
@@ -189,45 +182,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def runDevice(self):
         print "Number of active devices: " + str(len(self.devices))
         self.checkStatus(self.devices[0])
-
-    def checkCfgFile(self):
-        #isCorrect = True
-        if os.path.exists(fileCfg):
-            try:
-                file = open(fileCfg,"r")
-                lines = file.readlines()
-                file.close()
-                print "Lines: " + str(len(lines)) # ??? debug
-                if len(lines) > 0:
-                    for line in lines:
-                        lineDevName = line # ??? debug if lenth >1
-                        splitLine = lineDevName.split("=")
-                        if len(splitLine) >3: # ???
-                            #isCorrect = False
-                            continue
-                            #self.printMessageToOutputEdit("Incorrect format of configfile")
-
-                        else:
-                            if (splitLine[0]=="[sock]"):
-                                self.devices.append(splitLine[1])
-                                # print "dev_: "
-
-
-                    #if(isCorrect==False):
-                    if(len(self.devices)==0):
-                        self.showDialog()
-                        return
-
-                    print self.devices[0]
-                    #self.initDevices()
-                            #self.runDevice()
-                else:
-                    self.showDialog()
-
-            except IOError as e:
-                self.printMessageToOutputEdit(str(e))
-        else:
-            self.showDialog()
 
     def initDevices(self):
         if len(self.devices) < 1:
@@ -264,18 +218,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.printMessageToOutputEdit(str(exc))
 
 
-    # def checkStatus(self, devName):
-    #     try:
-    #         device = PyTango.DeviceProxy(str(devName)) # ??????? Debug. Get name of proxy from settings
-    #         # device = PyTango.DeviceProxy("sock/pssocketaa/1")
-    #
-    #         # self.devicesState[0] = device.state()
-    #         mes2 = device.status()
-    #         #print "State: " + mes
-    #         print "Status: " + mes2
-    #         self.tangoDevices.append(device)
-    #     except PyTango.DevFailed as exc:
-    #         self.printMessageToOutputEdit(str(exc))
+
 
     def addDeviceToCfgFile(self,devName): # ??? for many devices
         with open(fileCfg,"w") as fileWrite:
@@ -302,22 +245,3 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.devices.append(str(text))
             # MainWindow.setWindowTitle(_translate(text, text, None))
             self.addDeviceToCfgFile(text)
-            # self.initDevices()
-        else:
-            print "ELSE"
-
-from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
-from taurus.qt.qtgui.input import TaurusWheelEdit
-from taurus.qt.qtgui.button import TaurusCommandButton
-from taurus.qt.qtgui.display import TaurusLCD
-
-
-# if __name__ == "__main__":
-#     import sys
-#     app = QtGui.QApplication(sys.argv)
-#     MainWindow = QtGui.QMainWindow()
-#     ui = Ui_MainWindow()
-#     ui.setupUi(MainWindow)
-#     MainWindow.show()
-#     sys.exit(app.exec_())
-
