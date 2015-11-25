@@ -36,16 +36,17 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_MainWindow(QtGui.QMainWindow):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow,devices):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
 
         #MainWindow.
 
-        self.devices = list() # list of names of devices
+        #self.devices = list() # list of names of devices
+        self.devices = devices
         self.tangoDevices = list() # list of tango-devices
         #self.devicesState = list() # list of statuses of devices
 
-        self.checkCfgFile()
+        # self.checkCfgFile()
 
         horWinSize = 150 + len(self.devices)*50
         MainWindow.setFixedSize(481,horWinSize)
@@ -54,10 +55,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if (len(self.devices)<1):
             print "Devices < than 1"
             self.showDialog()
-        elif (len(self.devices)<11):
-            self.forLessThan11Devices(MainWindow)
-        elif (len(self.devices)>10):
-            self.forMoreThan10Devices()
+        # elif (len(self.devices)<11):
+        self.forLessThan11Devices(MainWindow)
+        # elif (len(self.devices)>10):
+        #     self.forMoreThan10Devices()
 
 
     #def forLessThan11Devices(self):
@@ -230,6 +231,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def initDevices(self):
         if len(self.devices) < 1:
+            print("Devices less than 1")
             return
         print "Number of devices: " + str(len(self.devices))
 
@@ -288,8 +290,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
 
 
-    #def showDialog(self)
-    def showDialog(self,MainWindow):
+    def showDialog(self):
+    #def showDialog(self,MainWindow):
         dial = SettingsDialog(self)
         if (len(self.devices)!=0):
             dial.setDefaultValue(self.devices[0])
@@ -297,9 +299,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         if dial.exec_():
             text = dial.getValue()
-            MainWindow.setWindowTitle(_translate(text, text, None))
+            self.devices.append(str(text))
+            # MainWindow.setWindowTitle(_translate(text, text, None))
             self.addDeviceToCfgFile(text)
-            self.initDevices()
+            # self.initDevices()
         else:
             print "ELSE"
 
