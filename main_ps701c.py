@@ -9,40 +9,9 @@ from PyQt4 import QtGui
 import os.path
 import ui_ps701c
 
-fileCfg = "devsockets.cfg"
+import PyTango
 
-devices= list()
-
-def checkCfgFile():
-        #isCorrect = True
-        if os.path.exists(fileCfg):
-            try:
-                file = open(fileCfg,"r")
-                lines = file.readlines()
-                file.close()
-                print "Lines: " + str(len(lines)) # ??? debug
-                if len(lines) > 0:
-                    for line in lines:
-                        lineDevName = line # ??? debug if lenth >1
-                        splitLine = lineDevName.split("=")
-                        if len(splitLine) >3: # ???
-                            #isCorrect = False
-                            continue
-                            #self.printMessageToOutputEdit("Incorrect format of configfile")
-
-                        else:
-                            if (splitLine[0]=="[sock]"):
-                                devices.append(splitLine[1])
-
-            except IOError as e:
-                #printMessageToOutputEdit(str(e))
-                print("IOERROR")
-        # else:
-        #     showDialog()
-
-def addDeviceToCfgFile(devName): # ??? for many devices
-    with open(fileCfg,"w") as fileWrite:
-            fileWrite.write(str("[sock]=" +devName+"="))
+propertyTreeName = 'devsockets'
 
 # def printMessageToOutputEdit(self, message):
 #     dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
@@ -54,8 +23,25 @@ if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
 
-    checkCfgFile()
-    if len(devices)<11:
+    # checkCfgFile()
+    db = PyTango.Database()
+    devicesProperties = db.get_object_property_list(propertyTreeName,'*')
+    devicesName = list()
+
+    for i in range(0,len(devicesProperties)):
+        dev = db.get_property(propertyTreeName,devicesProperties[i])
+        key = devicesProperties[i]
+        # # print dev[devicesProperties[i]]
+        # print key
+        # devkey = dev.get(key)
+        # print dev[key][0]
+        devicesName.append(dev[key][0])
+        # print devkey[0]
+        # print dev[key]
+        # devicesName.append(str(dev[devicesProperties[i]]))
+
+    if len(devicesName)<11 and len(devicesName) > 0:
+    # if len(devicesProperties)<11 and len(devicesProperties) > 0:
         # showDialog(MainWindow)
         # MainWindow.show()
         # ui = SettingsDialog()
@@ -66,13 +52,24 @@ if __name__ == "__main__":
 
         MainWindow = QtGui.QMainWindow()
         ui = ui_ps701c.Ui_MainWindow()
-        ui.setupUi(MainWindow,devices)
+        ui.setupUi(MainWindow,devicesName)
         MainWindow.show()
-    else:
+    elif len(devicesProperties) > 10:
         print("more than 10")
         MainWindow = QtGui.QMainWindow()
         # ui = ui_ps701c.Ui_MainWindow()
         # ui.setupUi(MainWindow,devices)
+        MainWindow.show()
+    else:
+        # dist = db.get_property("/devsockets","1")
+        dist = db.get_object_list("dev*")
+        dist2 = db.get_object_property_list('devsockets','*')
+        prop = db.get_property('devsockets',dist2[3])
+        lenn = len(dist2)
+        print dist2[3]
+        print lenn
+        print prop
+        MainWindow = QtGui.QMainWindow()
         MainWindow.show()
     # ui = Ui_MainWindow()
     # ui.setupUi(MainWindow)

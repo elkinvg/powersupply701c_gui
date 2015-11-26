@@ -20,6 +20,7 @@ from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.input import TaurusWheelEdit
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
+from taurus.qt.qtgui.input import TaurusValueSpinBox
 
 fileCfg = "devsockets.cfg"
 
@@ -50,26 +51,27 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.deviceNameLabel = list()
         self.statusLed = list()
-        self.voltageWheelEdit = list()
+        self.voltageValueSpinBox = list()
+        self.setVoltageButton = list()
         self.measLabel = list()
         self.voltageLabel = list()
 
         for i in range(0,len(self.devices)):
             self.statusLed.append(TaurusLed())
+            self.statusLed[i].setModel(str(self.devices[i]) + "/State")
+            # df = TaurusLed()
+            # df.setAutoTooltip()
+            self.statusLed[i].setAutoTooltip(False) # ??? Всплывающая подсказка
 
-            self.voltageWheelEdit.append(TaurusWheelEdit())
-            self.voltageWheelEdit[i].setProperty("integerDigits", 3)
-            self.voltageWheelEdit[i].setProperty("decimalDigits", 0)
-            self.voltageWheelEdit[i].setMinValue(0.0)
-            self.voltageWheelEdit[i].setMaxValue(500.0)
-            # self.voltageWheelEdit[i].setVerticalSpacing(10)
+            self.voltageValueSpinBox.append(QtGui.QSpinBox())
+            self.voltageValueSpinBox[i].setMinimum(0)
+            self.voltageValueSpinBox[i].setMaximum(500)
+            self.voltageValueSpinBox[i].setValue(0)
 
+            self.setVoltageButton.append(QtGui.QPushButton())
+            self.setVoltageButton[i].setText("set Voltage")
 
-            # self.measLabel.append(TaurusLabel())
             self.measLabel.append(TaurusLCD())
-            # ss = TaurusLCD()
-            # self.taurusLCD.setGeometry(QtCore.QRect(160, 280, 73, 23))
-            # self.taurusLCD.setObjectName(_fromUtf8("taurusLCD"))
             self.measLabel[i].setEnabled(True)
             self.measLabel[i].setDigitCount(3)
             palette = self.measLabel[i].palette()
@@ -84,21 +86,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
             textLabel += "<\b><\font>"
 
             self.deviceNameLabel[i].setText(textLabel)
-            # QtGui.QLabel.
             self.deviceNameLabel[i].setFixedWidth(200)
-            # self.deviceNameLabel[i].setText(self.devices[i])
-
-        # self.checkCfgFile()
 
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-
-
-        self.outputEdit = QtGui.QTextEdit()
-        # self.outputEdit.setGeometry(QtCore.QRect(30, 80, 411, 81))
-        self.outputEdit.setObjectName(_fromUtf8("outputEdit"))
-        self.outputEdit.setReadOnly(True)
 
         self.reconnectButton = TaurusCommandButton(self.centralwidget)
         self.reconnectButton.setObjectName(_fromUtf8("reconnectButton"))
@@ -107,13 +99,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
 
         #clicked connect
-        self.settingsButton.clicked.connect(self.showDialog)
-
-
+        # self.settingsButton.clicked.connect(self.showDialog)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        # wd = QtGui.QApplication.desktop()
-        # wid = wd.width
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -126,12 +115,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         horWinSize = 150 + len(self.devices)*50
         MainWindow.setFixedSize(481,horWinSize)
-        # elif (len(self.devices)>10):
-        #     self.forMoreThan10Devices()
 
-
-    #def forLessThan11Devices(self):
-    # def forLessThan11Devices(self,MainWindow):
 
     def layouts(self,MainWindow):
         mainLayout = QtGui.QVBoxLayout()
@@ -145,7 +129,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             # htopLayout[i].addStretch(1)
             htopLayout[i].addWidget(self.measLabel[i])
             htopLayout[i].addWidget(self.voltageLabel[i])
-            htopLayout[i].addWidget(self.voltageWheelEdit[i])
+            htopLayout[i].addWidget(self.voltageValueSpinBox[i])
+            htopLayout[i].addWidget(self.setVoltageButton[i])
             htopLayout[i].addStretch(1)
             htopLayout[i].addWidget(self.statusLed[i])
 
@@ -157,8 +142,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for i in range(0,len(self.devices)):
             mainLayout.addLayout(htopLayout[i])
 
-        #mainLayout.addLayout(htopLayout)
-        mainLayout.addWidget(self.outputEdit)
         mainLayout.addLayout(hbottomLayout)
 
         centralWidget = MainWindow.centralWidget()
@@ -172,8 +155,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
 
-        for i in range(0,len(self.devices)):
-            self.statusLed[i].setLedColor(_translate("MainWindow", "green", None))
+        # for i in range(0,len(self.devices)):
+        #     self.statusLed[i].setLedColor(_translate("MainWindow", "green", None))
             # self.measLabel[i].setText(_translate("MainWindow", " 99.99", None))
 
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
@@ -194,35 +177,27 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 print("Device: -> " + self.devices[i])
                 deviceTan = PyTango.DeviceProxy(self.devices[i])
                 if deviceTan.state() == PyTango.DevState.OFF:
-                    #mes = self.devices[0] + " is OFF"
-                    mes = deviceTan.status()
-                    self.printMessageToOutputEdit(mes)
-                    self.statusLed[i].setLedColor("white")
-                    # self.voltageWheelEdit[i].setEnabled(False)
+                    # self.statusLed[i].setLedColor("white")
+                    self.voltageValueSpinBox[i].setEnabled(False)
+                    self.setVoltageButton[i].setEnabled(False)
+                    self.statusLed[i].setToolTip("TESTOFF") # ??? test
                 elif deviceTan.state() == PyTango.DevState.FAULT:
-                    mes = deviceTan.status()
-                    self.printMessageToOutputEdit(mes)
-                    self.statusLed[i].setLedColor("red")
-                    # self.voltageWheelEdit[i].setEnabled(False)
+                    # self.statusLed[i].setLedColor("red")
+                    self.voltageValueSpinBox[i].setEnabled(False)
+                    self.setVoltageButton[i].setEnabled(False)
+                    self.statusLed[i].setToolTip("TESTFAULT") # ??? test
                 elif deviceTan.state() == PyTango.DevState.ON:
-                    # mes = self.devices[0] + " is ON"
-                    mes = deviceTan.status()
-                    self.printMessageToOutputEdit(mes)
-                    self.statusLed[i].setLedColor("green")
-                    self.voltageWheelEdit[i].setEnabled(True)
+                    # self.statusLed[i].setLedColor("green")
+                    self.voltageValueSpinBox[i].setEnabled(True)
+                    self.setVoltageButton[i].setEnabled(True)
+                    self.statusLed[i].setToolTip("TESTON") # ??? test
                 self.tangoDevices.append(deviceTan)
-            except PyTango.DevFailed as exc: #??? вылетает даже если только один из девайсов глючит
-                # for i in range(0,len(self.devices)):
+            except PyTango.DevFailed as exc:
                 self.statusLed[i].setLedColor("red")
-                # self.voltageWheelEdit[i].setEnabled(False)
-                self.printMessageToOutputEdit(str(exc))
+                self.statusLed[i].setToolTip("TESTECXEPT") # ??? test
+                self.voltageValueSpinBox[i].setEnabled(False)
+                self.setVoltageButton[i].setEnabled(False)
 
-
-
-
-    def addDeviceToCfgFile(self,devName): # ??? for many devices
-        with open(fileCfg,"w") as fileWrite:
-                fileWrite.write(str("[sock]=" +devName+"="))
 
 
     def printMessageToOutputEdit(self, message):
@@ -233,15 +208,15 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
 
 
-    def showDialog(self):
-    #def showDialog(self,MainWindow):
-        dial = SettingsDialog(self)
-        if (len(self.devices)!=0):
-            dial.setDefaultValue(self.devices[0])
-        dial.show()
-
-        if dial.exec_():
-            text = dial.getValue()
-            self.devices.append(str(text))
-            # MainWindow.setWindowTitle(_translate(text, text, None))
-            self.addDeviceToCfgFile(text)
+    # def showDialog(self):
+    # #def showDialog(self,MainWindow):
+    #     dial = SettingsDialog(self)
+    #     if (len(self.devices)!=0):
+    #         dial.setDefaultValue(self.devices[0])
+    #     dial.show()
+    #
+    #     if dial.exec_():
+    #         text = dial.getValue()
+    #         self.devices.append(str(text))
+    #         # MainWindow.setWindowTitle(_translate(text, text, None))
+    #         self.addDeviceToCfgFile(text)

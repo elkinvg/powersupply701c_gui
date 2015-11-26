@@ -54,6 +54,49 @@ def forMoreThan10Devices(self):
     return
 
 
+# devices= list()
+#
+# def checkCfgFile():
+#         #isCorrect = True
+#         if os.path.exists(fileCfg):
+#             try:
+#                 file = open(fileCfg,"r")
+#                 lines = file.readlines()
+#                 file.close()
+#                 print "Lines: " + str(len(lines)) # ??? debug
+#                 if len(lines) > 0:
+#                     for line in lines:
+#                         lineDevName = line # ??? debug if lenth >1
+#                         splitLine = lineDevName.split("=")
+#                         if len(splitLine) >3: # ???
+#                             #isCorrect = False
+#                             continue
+#                             #self.printMessageToOutputEdit("Incorrect format of configfile")
+#
+#                         else:
+#                             if (splitLine[0]=="[sock]"):
+#                                 devices.append(splitLine[1])
+#
+#             except IOError as e:
+#                 #printMessageToOutputEdit(str(e))
+#                 print("IOERROR")
+#         # else:
+#         #     showDialog()
+#
+# def addDeviceToCfgFile(devName): # ??? for many devices
+#     with open(fileCfg,"w") as fileWrite:
+#             fileWrite.write(str("[sock]=" +devName+"="))
+
+
+
+
+
+def addDeviceToCfgFile(self,devName): # ??? for many devices
+    with open(fileCfg,"w") as fileWrite:
+            fileWrite.write(str("[sock]=" +devName+"="))
+
+
+
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
