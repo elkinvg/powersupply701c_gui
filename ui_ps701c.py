@@ -22,8 +22,6 @@ from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
 from taurus.qt.qtgui.input import TaurusValueSpinBox
 
-fileCfg = "devsockets.cfg"
-
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -57,10 +55,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.voltageLabel = list()
 
         for i in range(0,len(self.devices)):
-            self.statusLed.append(TaurusLed())
+            self.statusLed.append(TaurusLed(self))
             self.statusLed[i].setModel(str(self.devices[i]) + "/State")
             # df = TaurusLed()
-            # df.setAutoTooltip()
+            # df.too
             self.statusLed[i].setAutoTooltip(False) # ??? Всплывающая подсказка
 
             self.voltageValueSpinBox.append(QtGui.QSpinBox())
@@ -113,7 +111,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.centerOnScreen(MainWindow)
         self.initDevices()
 
-        horWinSize = 150 + len(self.devices)*50
+        horWinSize = 50 + len(self.devices)*50
         MainWindow.setFixedSize(481,horWinSize)
 
 
@@ -181,20 +179,24 @@ class Ui_MainWindow(QtGui.QMainWindow):
                     self.voltageValueSpinBox[i].setEnabled(False)
                     self.setVoltageButton[i].setEnabled(False)
                     self.statusLed[i].setToolTip("TESTOFF") # ??? test
+                    print("TESTOFF")
                 elif deviceTan.state() == PyTango.DevState.FAULT:
                     # self.statusLed[i].setLedColor("red")
                     self.voltageValueSpinBox[i].setEnabled(False)
                     self.setVoltageButton[i].setEnabled(False)
                     self.statusLed[i].setToolTip("TESTFAULT") # ??? test
+                    print self.statusLed[i].getFormatedToolTip(True)
+                    print("TESTFAULT")
                 elif deviceTan.state() == PyTango.DevState.ON:
                     # self.statusLed[i].setLedColor("green")
                     self.voltageValueSpinBox[i].setEnabled(True)
                     self.setVoltageButton[i].setEnabled(True)
                     self.statusLed[i].setToolTip("TESTON") # ??? test
+                    print("TESTON")
                 self.tangoDevices.append(deviceTan)
             except PyTango.DevFailed as exc:
                 self.statusLed[i].setLedColor("red")
-                self.statusLed[i].setToolTip("TESTECXEPT") # ??? test
+                self.statusLed[i].setToolTip(str(exc)) # ??? test
                 self.voltageValueSpinBox[i].setEnabled(False)
                 self.setVoltageButton[i].setEnabled(False)
 

@@ -12,7 +12,7 @@ import ui_ps701c
 import PyTango
 
 propertyTreeName = 'devsockets'
-
+devicesName = list()
 # def printMessageToOutputEdit(self, message):
 #     dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
 #     outputEdit.append("<b>" + dateTime + "</b>")
@@ -24,9 +24,12 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
 
     # checkCfgFile()
-    db = PyTango.Database()
-    devicesProperties = db.get_object_property_list(propertyTreeName,'*')
-    devicesName = list()
+    try:
+        db = PyTango.Database()
+        devicesProperties = db.get_object_property_list(propertyTreeName,'*')
+        print len(devicesProperties)
+    except:
+        print "EXCEPT"
 
     for i in range(0,len(devicesProperties)):
         dev = db.get_property(propertyTreeName,devicesProperties[i])
@@ -61,16 +64,18 @@ if __name__ == "__main__":
         # ui.setupUi(MainWindow,devices)
         MainWindow.show()
     else:
+        print("EXIT")
+        exit()
         # dist = db.get_property("/devsockets","1")
-        dist = db.get_object_list("dev*")
-        dist2 = db.get_object_property_list('devsockets','*')
-        prop = db.get_property('devsockets',dist2[3])
-        lenn = len(dist2)
-        print dist2[3]
-        print lenn
-        print prop
-        MainWindow = QtGui.QMainWindow()
-        MainWindow.show()
+        # dist = db.get_object_list("dev*")
+        # dist2 = db.get_object_property_list('devsockets','*')
+        # prop = db.get_property('devsockets',dist2[3])
+        # lenn = len(dist2)
+        # print dist2[3]
+        # print lenn
+        # print prop
+        # MainWindow = QtGui.QMainWindow()
+        # MainWindow.show()
     # ui = Ui_MainWindow()
     # ui.setupUi(MainWindow)
 
