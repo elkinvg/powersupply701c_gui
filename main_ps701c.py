@@ -8,6 +8,7 @@ from PyQt4 import QtGui
 # from datetime import datetime
 import os.path
 import ui_ps701c
+import ui_ps701c_mt10
 
 import PyTango
 
@@ -60,8 +61,8 @@ if __name__ == "__main__":
     elif len(devicesProperties) > 10:
         print("more than 10")
         MainWindow = QtGui.QMainWindow()
-        # ui = ui_ps701c.Ui_MainWindow()
-        # ui.setupUi(MainWindow,devices)
+        ui = ui_ps701c_mt10.Ui_MainWindow_mt10()
+        ui.setupUi(MainWindow,devicesName)
         MainWindow.show()
     else:
         print("EXIT")

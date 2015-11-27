@@ -111,8 +111,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.centerOnScreen(MainWindow)
         self.initDevices()
 
-        horWinSize = 50 + len(self.devices)*50
-        MainWindow.setFixedSize(481,horWinSize)
+        vertWinSize = 50 + len(self.devices)*50
+        MainWindow.setFixedSize(481,vertWinSize)
 
 
     def layouts(self,MainWindow):
