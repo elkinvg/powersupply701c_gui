@@ -85,6 +85,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
             self.deviceNameLabel[i].setText(textLabel)
             self.deviceNameLabel[i].setFixedWidth(200)
+            self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
 
         self.centralwidget = QtGui.QWidget(MainWindow)

@@ -1,5 +1,9 @@
 from PyQt4 import QtCore, QtGui
 import PyTango
+
+from PyQt4.QtCore import QString
+
+from common_func import SettingsDialog, ExtendedQLabel
 from taurus.qt.qtgui.display import TaurusLed
 
 try:
@@ -30,13 +34,22 @@ class Ui_MainWindow_mt10(QtGui.QMainWindow):
 
         j = k = 0
         for i in range(0,len(self.devices)):
-            self.deviceNameLabel.append(QtGui.QLabel())
+            # self.deviceNameLabel.append(QtGui.QLabel())
+            self.deviceNameLabel.append(ExtendedQLabel())
+            # ass = ExtendedQLabel()
+            # ass.text()
             textLabel = "<font color = red> <b>"
-            textLabel += QtCore.QString(self.devices[i])
+            # textLabel += QtCore.QString(self.devices[i])
+            textLabel += self.devices[i]
             textLabel += "<\b><\font>"
 
             self.deviceNameLabel[i].setText(textLabel)
+            self.deviceNameLabel[i].deviceNameF(self.devices[i])
             self.deviceNameLabel[i].setFixedWidth(150)
+            self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+            self.connect(self.deviceNameLabel[i],QtCore.SIGNAL("clicked(QString)"),self.showDialog)
+            # self.deviceNameLabel[i].clicked.connect(self.showDialog)
 
             self.statusLed.append(TaurusLed(self))
             self.statusLed[i].setModel(str(self.devices[i]) + "/State")
@@ -112,3 +125,22 @@ class Ui_MainWindow_mt10(QtGui.QMainWindow):
         resolution = QtGui.QDesktopWidget().screenGeometry()
         MainWindow.move((resolution.width() / 2) - (self.frameSize().width() / 2),
                   (resolution.height() / 2) - (self.frameSize().height() / 2))
+
+    def showDialog(self,sttr):
+        print "Clcked ShowDialog"
+        dial = SettingsDialog(sttr,self)
+        print sttr
+        dial.show()
+        # dial = SettingsDialog(self)
+        # if (len(self.devices)!=0):
+        #     dial.setDefaultValue(self.devices[0])
+        # dial.show()
+        #
+        # if dial.exec_():
+        #     text = dial.getValue()
+        #     self.addDeviceToCfgFile(text)
+        #     self.initDevices()
+        # else:
+        #     print "ELSE"
+
+

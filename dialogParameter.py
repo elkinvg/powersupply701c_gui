@@ -1,4 +1,3 @@
-import sys
 #from PyQt4 import QtGui
 from PyQt4.QtGui import QDialogButtonBox, QDialog, QWidget
 from PyQt4.QtGui import QLineEdit, QLabel
@@ -52,7 +51,7 @@ class SettingsDialog(QDialog):
         vertLayout.addLayout(layoutup)
         vertLayout.addLayout(layoutdown)
 
-        self.setModal(True)
+        # self.setModal(True)
 
         # self.buttons.accepted.connect(self.getValue)
         self.buttons.accepted.connect(self.accept)
