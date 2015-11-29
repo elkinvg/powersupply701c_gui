@@ -4,6 +4,8 @@ from PyQt4.QtGui import QLineEdit, QLabel
 from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QFont
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
+import PyTango
+
 from taurus.qt.qtgui.display import TaurusLed
 #from mercurial.changegroup import nocompress
 
@@ -45,6 +47,25 @@ class SettingsDialog(QDialog):
         # layoutup.addWidget(self.nameOfServLabel)
         # layoutup.addWidget(self.socketName)
 
+        vertLayout = QVBoxLayout(self)
+        layoutup = QHBoxLayout()
+        layoutdown = QHBoxLayout()
+
+        layoutdown.addStretch(1)
+        layoutdown.addWidget(self.buttons)
+
+        # vertLayout.addWidget(self.infoLabel)
+
+
+        self.statusLed = TaurusLed(self)
+        self.statusLed.setModel(name + "/State")
+
+        layoutup.addWidget(self.statusLed)
+
+
+        vertLayout.addLayout(layoutup)
+        vertLayout.addLayout(layoutdown)
+
         self.setModal(True)
 
         # self.buttons.accepted.connect(self.getValue)
@@ -85,8 +106,6 @@ class SettingsDialog(QDialog):
 
 
 
-
-
 class ExtendedQLabel(QLabel):
 
     def __init(self, parent):
@@ -97,3 +116,40 @@ class ExtendedQLabel(QLabel):
 
     def mouseReleaseEvent(self, ev):
         self.emit(SIGNAL('clicked(QString)'),self.deviceName)
+
+
+def setCommonProp(self):
+    if len(self.devices) < 1:
+        print("Devices less than 1")
+        return
+    print "Number of devices: " + str(len(self.devices))
+
+    for i in range(0,len(self.devices)):
+        try:
+            print("Device: -> " + self.devices[i])
+            deviceTan = PyTango.DeviceProxy(self.devices[i])
+            if deviceTan.state() == PyTango.DevState.OFF:
+                # self.statusLed[i].setLedColor("white")
+                self.voltageValueSpinBox[i].setEnabled(False)
+                self.setVoltageButton[i].setEnabled(False)
+                self.statusLed[i].setToolTip("TESTOFF") # ??? test
+                print("TESTOFF")
+            elif deviceTan.state() == PyTango.DevState.FAULT:
+                # self.statusLed[i].setLedColor("red")
+                self.voltageValueSpinBox[i].setEnabled(False)
+                self.setVoltageButton[i].setEnabled(False)
+                self.statusLed[i].setToolTip("TESTFAULT") # ??? test
+                print self.statusLed[i].getFormatedToolTip(True)
+                print("TESTFAULT")
+            elif deviceTan.state() == PyTango.DevState.ON:
+                # self.statusLed[i].setLedColor("green")
+                self.voltageValueSpinBox[i].setEnabled(True)
+                self.setVoltageButton[i].setEnabled(True)
+                self.statusLed[i].setToolTip("TESTON") # ??? test
+                print("TESTON")
+            self.tangoDevices.append(deviceTan)
+        except PyTango.DevFailed as exc:
+            self.statusLed[i].setLedColor("red")
+            self.statusLed[i].setToolTip(str(exc)) # ??? test
+            self.voltageValueSpinBox[i].setEnabled(False)
+            self.setVoltageButton[i].setEnabled(False)

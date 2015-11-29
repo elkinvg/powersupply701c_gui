@@ -12,7 +12,9 @@ import ui_ps701c_mt10
 
 import PyTango
 
-propertyTreeName = 'devsockets'
+# propertyTreeName = 'devsockets'
+propertyTreeName = 'devintango'
+
 devicesName = list()
 # def printMessageToOutputEdit(self, message):
 #     dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
@@ -44,7 +46,7 @@ if __name__ == "__main__":
         # print dev[key]
         # devicesName.append(str(dev[devicesProperties[i]]))
 
-    if len(devicesName)<11 and len(devicesName) > 0:
+    if len(devicesName)<21 and len(devicesName) > 0:
     # if len(devicesProperties)<11 and len(devicesProperties) > 0:
         # showDialog(MainWindow)
         # MainWindow.show()
@@ -58,7 +60,7 @@ if __name__ == "__main__":
         ui = ui_ps701c.Ui_MainWindow()
         ui.setupUi(MainWindow,devicesName)
         MainWindow.show()
-    elif len(devicesProperties) > 10:
+    elif len(devicesProperties) > 20:
         print("more than 10")
         MainWindow = QtGui.QMainWindow()
         ui = ui_ps701c_mt10.Ui_MainWindow_mt10()
