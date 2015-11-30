@@ -11,10 +11,9 @@
 from PyQt4 import QtCore, QtGui
 import PyTango
 from PyTango import Except
-#from logilab.common.fileutils import lines
 
 from dialogParameter import SettingsDialog
-from datetime import datetime
+# from datetime import datetime
 # import os.path
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.input import TaurusWheelEdit
@@ -52,10 +51,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.voltageValueSpinBox = list()
         self.setVoltageButton = list()
         self.measLCD = list()
-        self.voltageLabel = list()
-
-        for i in range(0,len(self.devices)):
-            self.setWidgetView(i) # установка параметров виджетов
+        # self.voltageLabel = list()
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -66,8 +62,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.settingsButton = QtGui.QPushButton(self.centralwidget)
         self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
 
-        #clicked connect
-        self.settingsButton.clicked.connect(self.tempConsoleOut)
+        self.reconnectButton.clicked.connect(self.reconnectCommand)
+
+        for i in range(0,len(self.devices)):
+            self.setWidgetView(i) # установка параметров виджетов
+            self.setSignalHandler(i) # установка обработчиков
+        # clicked connect
+        # self.settingsButton.clicked.connect(self.tempConsoleOut)
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -75,7 +76,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.layouts(MainWindow)
+        self.layouts(MainWindow)  # установка компоновки
 
         # self.centerOnScreen()
         self.centerOnScreen(MainWindow)
@@ -83,10 +84,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
         print("Number of TanDev: " + str(self.tangoDevices))
 
         self.widgetSizes(MainWindow) # установка размеров виджетов
-
-        # if len(self.devices) < 11:
-        #     sep =
-        # if len(self.devices) > 10:
 
     def widgetSizes(self,MainWindow):
         if len(self.devices) > self.nMinRowsForDecrSize:
@@ -175,8 +172,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.voltageValueSpinBox[i].setMaximum(500)
         self.voltageValueSpinBox[i].setValue(0)
 
-        self.setVoltageButton.append(QtGui.QPushButton())
+        # self.setVoltageButton.append(QtGui.QPushButton())
+        self.setVoltageButton.append(common_func.MyQPushButton())
         self.setVoltageButton[i].setText("set Voltage")
+        self.setVoltageButton[i].iter = i
 
         self.measLCD.append(TaurusLCD())
         self.measLCD[i].setEnabled(True)
@@ -194,7 +193,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.measLCD[i].setPalette(palette)
         self.measLCD[i].setSegmentStyle(TaurusLCD.Flat)
 
-        self.voltageLabel.append(TaurusLabel())
+        # self.voltageLabel.append(TaurusLabel())
 
         self.deviceNameLabel.append(QtGui.QLabel())
         textLabel = "<font color = black>"
@@ -206,8 +205,27 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
     def setSignalHandler(self,i):
-        self.setVoltageButton[i].connect()
-        sd=1
+        # self.setVoltageButton[i].clicked.connect(self.tempConsoleOut)
+        self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
+        # print("Hanler")
+
+    def setVoltageAttr(self,i):
+        voltage = self.voltageValueSpinBox[i].value()
+        self.tangoDevices[i].write_attribute("Voltage", voltage)
+        print(voltage)
+
+    def reconnectCommand(self):
+        for i in range(0,len(self.tangoDevices)):
+            if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
+                self.tangoDevices[i].command_inout("Init")
+                print("chargingOnCommand")
+
+    def chargingOnCommand(self):
+        for i in range(0,len(self.tangoDevices)):
+            if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
+                self.tangoDevices[i].command_inout("ChargingOn")
+                print("chargingOnCommand")
+
 
     def centerOnScreen (self,MainWindow):
         resolution = QtGui.QDesktopWidget().screenGeometry()
@@ -224,31 +242,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
         self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
-    def runDevice(self):
-        print "Number of active devices: " + str(len(self.devices))
-        self.checkStatus(self.devices[0])
 
-    # def initDevices(self):
-
-
-    def printMessageToOutputEdit(self, message):
-        dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
-        self.outputEdit.append("<b>" + dateTime + "</b>")
-        excMes = "Exception message: " + message
-        self.outputEdit.append(excMes)
 
     def tempConsoleOut(self,i):
-        print("click")
+        val = self.voltageValueSpinBox[i].value()
+        print "sds"
+        print(val)
 
-    # def showDialog(self):
-    # #def showDialog(self,MainWindow):
-    #     dial = SettingsDialog(self)
-    #     if (len(self.devices)!=0):
-    #         dial.setDefaultValue(self.devices[0])
-    #     dial.show()
-    #
-    #     if dial.exec_():
-    #         text = dial.getValue()
-    #         self.devices.append(str(text))
-    #         # MainWindow.setWindowTitle(_translate(text, text, None))
-    #         self.addDeviceToCfgFile(text)

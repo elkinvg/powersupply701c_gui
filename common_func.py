@@ -119,8 +119,8 @@ class MyQPushButton(QPushButton):
     def __init(self, parent):
         QPushButton.__init__(self, parent)
 
-    # def mouseReleaseEvent(self, ev):
-    #     self.emit()
+    def mouseReleaseEvent(self, ev):
+        self.emit(SIGNAL('clicked(int)'),self.iter)
 
 def initTangoDevices(qobject):
     if len(qobject.devices) < 1:
@@ -136,17 +136,18 @@ def initTangoDevices(qobject):
                 # qobject.statusLed[i].setLedColor("white")
                 # qobject.voltageValueSpinBox[i].setEnabled(False)
                 # qobject.setVoltageButton[i].setEnabled(False)
-                setEnabledVoltageEdit(qobject,i,False)
+                # setEnabledVoltageEdit(qobject,i,False)
+                setEnabledVoltageEdit(qobject,i,True) # ??? test
                 qobject.statusLed[i].setToolTip("TESTOFF") # ??? test
-                # print("TESTOFF")
+                print("TESTOFF is True now")
             elif deviceTan.state() == PyTango.DevState.FAULT:
                 # qobject.statusLed[i].setLedColor("red")
                 # qobject.voltageValueSpinBox[i].setEnabled(False)
                 # qobject.setVoltageButton[i].setEnabled(False)
-                setEnabledVoltageEdit(qobject,i,False)
+                setEnabledVoltageEdit(qobject,i,True)
                 qobject.statusLed[i].setToolTip("TESTFAULT") # ??? test
-                print qobject.statusLed[i].getFormatedToolTip(True)
-                # print("TESTFAULT")
+                # print qobject.statusLed[i].getFormatedToolTip(True)
+                print("TESTFAULT is True now")
             elif deviceTan.state() == PyTango.DevState.ON:
                 # qobject.statusLed[i].setLedColor("green")
                 # qobject.voltageValueSpinBox[i].setEnabled(True)
@@ -155,8 +156,9 @@ def initTangoDevices(qobject):
                 qobject.statusLed[i].setToolTip("TESTON") # ??? test
                 # print("TESTON")
             elif deviceTan.state() == PyTango.DevState.DISABLE:
-                qobject.voltageValueSpinBox[i].setEnabled(False)
-                qobject.setVoltageButton[i].setEnabled(False)
+                # qobject.voltageValueSpinBox[i].setEnabled(False)
+                # qobject.setVoltageButton[i].setEnabled(False)
+                setEnabledVoltageEdit(qobject,i,False)
                 qobject.statusLed[i].setToolTip("TESTDISABLE") # ??? test
             qobject.tangoDevices.append(deviceTan)
         except PyTango.DevFailed as exc:
@@ -185,5 +187,5 @@ def chargingOnCommand(tanDev):
 def chargingOffCommand(tanDev):
     tanDev.command_inout("ChargingOff")
 
-def setVoltageAttr(tanDev,valueOfVoltage):
-    tanDev.write_attribute("Voltage",valueOfVoltage)
+# def setVoltageAttr(tanDev,valueOfVoltage):
+#     tanDev.write_attribute("Voltage",valueOfVoltage)

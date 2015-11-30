@@ -141,3 +141,28 @@ if __name__ == "__main__":
     #             self.statusLed[i].setToolTip(str(exc)) # ??? test
     #             self.voltageValueSpinBox[i].setEnabled(False)
     #             self.setVoltageButton[i].setEnabled(False)
+
+
+def runDevice(self):
+    print "Number of active devices: " + str(len(self.devices))
+    self.checkStatus(self.devices[0])
+
+
+def printMessageToOutputEdit(self, message):
+    dateTime = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+    self.outputEdit.append("<b>" + dateTime + "</b>")
+    excMes = "Exception message: " + message
+    self.outputEdit.append(excMes)
+
+# def showDialog(self):
+    # #def showDialog(self,MainWindow):
+    #     dial = SettingsDialog(self)
+    #     if (len(self.devices)!=0):
+    #         dial.setDefaultValue(self.devices[0])
+    #     dial.show()
+    #
+    #     if dial.exec_():
+    #         text = dial.getValue()
+    #         self.devices.append(str(text))
+    #         # MainWindow.setWindowTitle(_translate(text, text, None))
+    #         self.addDeviceToCfgFile(text)
