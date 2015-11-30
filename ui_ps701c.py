@@ -67,7 +67,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
 
         #clicked connect
-        # self.settingsButton.clicked.connect(self.showDialog)
+        self.settingsButton.clicked.connect(self.tempConsoleOut)
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -79,7 +79,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         # self.centerOnScreen()
         self.centerOnScreen(MainWindow)
-        common_func.setCommonProp(self)
+        common_func.initTangoDevices(self)
+        print("Number of TanDev: " + str(self.tangoDevices))
 
         self.widgetSizes(MainWindow) # установка размеров виджетов
 
@@ -180,22 +181,33 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.measLCD.append(TaurusLCD())
         self.measLCD[i].setEnabled(True)
         self.measLCD[i].setDigitCount(3)
+        # self.measLCD[i].setBgRole('state')
+        # self.measLCD[i].setFgRole('state')
         palette = self.measLCD[i].palette()
+        # sd = TaurusLCD()
+        # sd.set
+
         palette.setColor(palette.WindowText, QtGui.QColor("green"))
-        palette.setColor(palette.Background, QtGui.QColor("black"))
+        # palette.setColor(palette.Background, QtGui.QColor("black"))
+        palette.setColor(palette.Light, QtGui.QColor("orange"))
+        palette.setColor(palette.Dark, QtGui.QColor("magenta"))
         self.measLCD[i].setPalette(palette)
+        self.measLCD[i].setSegmentStyle(TaurusLCD.Flat)
 
         self.voltageLabel.append(TaurusLabel())
 
         self.deviceNameLabel.append(QtGui.QLabel())
-        textLabel = "<font color = red> <b>"
+        textLabel = "<font color = black>"
         textLabel += QtCore.QString(self.devices[i])
-        textLabel += "<\b><\font>"
+        textLabel += "<\font>"
 
         self.deviceNameLabel[i].setText(textLabel)
         self.deviceNameLabel[i].setFixedWidth(200)
         self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
+    def setSignalHandler(self,i):
+        self.setVoltageButton[i].connect()
+        sd=1
 
     def centerOnScreen (self,MainWindow):
         resolution = QtGui.QDesktopWidget().screenGeometry()
@@ -225,7 +237,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         excMes = "Exception message: " + message
         self.outputEdit.append(excMes)
 
-
+    def tempConsoleOut(self,i):
+        print("click")
 
     # def showDialog(self):
     # #def showDialog(self,MainWindow):

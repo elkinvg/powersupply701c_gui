@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from PyQt4 import QtGui
 #from PyQt4 import QtCore, QtGui
 # import PyTango
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     try:
         db = PyTango.Database()
         devicesProperties = db.get_object_property_list(propertyTreeName,'*')
-        print len(devicesProperties)
+        # print len(devicesProperties)
     except:
         print "EXCEPT"
 
