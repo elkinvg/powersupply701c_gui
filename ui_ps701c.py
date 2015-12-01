@@ -51,6 +51,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.voltageValueSpinBox = list()
         self.setVoltageButton = list()
         self.measLCD = list()
+        self.radioButton = list()
         # self.voltageLabel = list()
 
         self.centralwidget = QtGui.QWidget(MainWindow)
@@ -87,13 +88,15 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def widgetSizes(self,MainWindow):
         if len(self.devices) > self.nMinRowsForDecrSize:
-            horSizeBlock = 481
+            horSizeBlock = 600
             if len(self.devices) > self.nMaxRows:
                 vertWinSize = 50 + len(self.devices)*50/2
             else:
                 vertWinSize = 50 + len(self.devices)*50
             horWinSize = horSizeBlock + (len(self.devices)//11)*horSizeBlock
             MainWindow.setFixedSize(horWinSize,vertWinSize)
+            for i in range(0,len(self.devices)):
+                self.radioButton[i].setFixedWidth(120)
         else:
             horWinSize = 800
             vertWinSize = 80 + len(self.devices)*80
@@ -108,6 +111,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 labelFont = self.deviceNameLabel[i].font()
                 labelFont.setPointSize(10)
                 self.deviceNameLabel[i].setFont(labelFont)
+                self.radioButton[i].setFixedHeight(50)
                 # self.voltageValueSpinBox[i].setPointSize(48)
             MainWindow.setFixedSize(horWinSize,vertWinSize)
 
@@ -129,6 +133,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             # htopLayout[i].addWidget(self.voltageLabel[i])
             htopLayout[i].addWidget(self.voltageValueSpinBox[i])
             htopLayout[i].addWidget(self.setVoltageButton[i])
+            htopLayout[i].addWidget(self.radioButton[i])
             # htopLayout[i].addStretch(1)
 
 
@@ -204,14 +209,26 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.deviceNameLabel[i].setFixedWidth(200)
         self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
+        # self.radioButton.append(QtGui.QRadioButton())
+        # self.radioButton.append(QtGui.QCommandLinkButton())
+        self.radioButton.append(common_func.MyQCheckBox())
+        self.radioButton[i].setText("Charging")
+        self.radioButton[i].iter = i
+        self.radioButton[i].setChecked(False)
+
     def setSignalHandler(self,i):
         # self.setVoltageButton[i].clicked.connect(self.tempConsoleOut)
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
+        self.connect(self.radioButton[i],QtCore.SIGNAL("clicked(int)"),self.chargingOnCommand)
+
         # print("Hanler")
 
     def setVoltageAttr(self,i):
         voltage = self.voltageValueSpinBox[i].value()
         self.tangoDevices[i].write_attribute("Voltage", voltage)
+        if (self.radioButton[i].isChecked() == False):
+            self.radioButton[i].setChecked(True)
+            self.tangoDevices[i].command_inout("ChargingOn")
         print(voltage)
 
     def reconnectCommand(self):
@@ -220,11 +237,18 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.tangoDevices[i].command_inout("Init")
                 print("chargingOnCommand")
 
-    def chargingOnCommand(self):
-        for i in range(0,len(self.tangoDevices)):
-            if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
-                self.tangoDevices[i].command_inout("ChargingOn")
-                print("chargingOnCommand")
+    def chargingOnCommand(self,i):
+        print("Charging : " + str(i))
+        if (self.radioButton[i].isChecked()):
+            self.radioButton[i].setChecked(False)
+            self.tangoDevices[i].command_inout("ChargingOff")
+        else:
+            self.radioButton[i].setChecked(True)
+            self.tangoDevices[i].command_inout("ChargingOn")
+        # for i in range(0,len(self.tangoDevices)):
+        #     if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
+        #         self.tangoDevices[i].command_inout("ChargingOn")
+        #         print("chargingOnCommand")
 
 
     def centerOnScreen (self,MainWindow):
