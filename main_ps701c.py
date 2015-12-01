@@ -14,7 +14,7 @@ import ui_ps701c_mt10
 import PyTango
 
 # propertyTreeName = 'devsockets'
-propertyTreeName = 'devintango'
+propertyTreeName = 'devintango2'
 
 devicesName = list()
 # def printMessageToOutputEdit(self, message):

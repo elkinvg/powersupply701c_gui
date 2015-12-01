@@ -73,6 +73,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         MainWindow.setCentralWidget(self.centralwidget)
 
+        self.timer = QtCore.QTimer() # установка таймера для проверки актуального заряда конденсаторов
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -220,6 +221,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
         # self.setVoltageButton[i].clicked.connect(self.tempConsoleOut)
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
         self.connect(self.radioButton[i],QtCore.SIGNAL("clicked(int)"),self.chargingOnCommand)
+        # for i in range(0,len(self.tangoDevices)):
+        #     if self.tangoDevices[i] != False:
+        #         self.connect(self.measLCD[i],QtCore.SIGNAL()
 
         # print("Hanler")
 
@@ -229,13 +233,14 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if (self.radioButton[i].isChecked() == False):
             self.radioButton[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
+        print("voltage")
         print(voltage)
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
             if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
                 self.tangoDevices[i].command_inout("Init")
-                print("chargingOnCommand")
+                print("reInit")
 
     def chargingOnCommand(self,i):
         print("Charging : " + str(i))
