@@ -51,7 +51,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.voltageValueSpinBox = list()
         self.setVoltageButton = list()
         self.measLCD = list()
-        self.radioButton = list()
+        self.checkActiveBox = list()
+
+        self.timer = list() # список таймеров
         # self.voltageLabel = list()
 
         self.centralwidget = QtGui.QWidget(MainWindow)
@@ -66,14 +68,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.reconnectButton.clicked.connect(self.reconnectCommand)
 
         for i in range(0,len(self.devices)):
+            self.timer.append(common_func.MyTimer()) # установка таймера для проверки актуального заряда конденсаторов
+            self.timer[i].iter = i
             self.setWidgetView(i) # установка параметров виджетов
             self.setSignalHandler(i) # установка обработчиков
         # clicked connect
         # self.settingsButton.clicked.connect(self.tempConsoleOut)
-
         MainWindow.setCentralWidget(self.centralwidget)
-
-        self.timer = QtCore.QTimer() # установка таймера для проверки актуального заряда конденсаторов
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -97,7 +98,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             horWinSize = horSizeBlock + (len(self.devices)//11)*horSizeBlock
             MainWindow.setFixedSize(horWinSize,vertWinSize)
             for i in range(0,len(self.devices)):
-                self.radioButton[i].setFixedWidth(120)
+                self.checkActiveBox[i].setFixedWidth(120)
         else:
             horWinSize = 800
             vertWinSize = 80 + len(self.devices)*80
@@ -112,7 +113,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 labelFont = self.deviceNameLabel[i].font()
                 labelFont.setPointSize(10)
                 self.deviceNameLabel[i].setFont(labelFont)
-                self.radioButton[i].setFixedHeight(50)
+                self.checkActiveBox[i].setFixedHeight(50)
                 # self.voltageValueSpinBox[i].setPointSize(48)
             MainWindow.setFixedSize(horWinSize,vertWinSize)
 
@@ -134,7 +135,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             # htopLayout[i].addWidget(self.voltageLabel[i])
             htopLayout[i].addWidget(self.voltageValueSpinBox[i])
             htopLayout[i].addWidget(self.setVoltageButton[i])
-            htopLayout[i].addWidget(self.radioButton[i])
+            htopLayout[i].addWidget(self.checkActiveBox[i])
             # htopLayout[i].addStretch(1)
 
 
@@ -174,9 +175,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.statusLed[i].setAutoTooltip(False) # ??? Всплывающая подсказка
 
         self.voltageValueSpinBox.append(QtGui.QSpinBox())
-        self.voltageValueSpinBox[i].setMinimum(0)
+        self.voltageValueSpinBox[i].setMinimum(50)
         self.voltageValueSpinBox[i].setMaximum(500)
-        self.voltageValueSpinBox[i].setValue(0)
+        self.voltageValueSpinBox[i].setValue(50)
 
         # self.setVoltageButton.append(QtGui.QPushButton())
         self.setVoltageButton.append(common_func.MyQPushButton())
@@ -212,48 +213,65 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         # self.radioButton.append(QtGui.QRadioButton())
         # self.radioButton.append(QtGui.QCommandLinkButton())
-        self.radioButton.append(common_func.MyQCheckBox())
-        self.radioButton[i].setText("Charging")
-        self.radioButton[i].iter = i
-        self.radioButton[i].setChecked(False)
+        self.checkActiveBox.append(common_func.MyQCheckBox())
+        self.checkActiveBox[i].setText("Charging")
+        self.checkActiveBox[i].iter = i
+        self.checkActiveBox[i].setChecked(False)
 
     def setSignalHandler(self,i):
-        # self.setVoltageButton[i].clicked.connect(self.tempConsoleOut)
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
-        self.connect(self.radioButton[i],QtCore.SIGNAL("clicked(int)"),self.chargingOnCommand)
+        self.connect(self.checkActiveBox[i], QtCore.SIGNAL("stateChanged(int,int)"),self.chargingOnOffCommand)
+        self.connect(self.timer[i],QtCore.SIGNAL("timeout(int)"),self.checkADCoutput)
         # for i in range(0,len(self.tangoDevices)):
         #     if self.tangoDevices[i] != False:
         #         self.connect(self.measLCD[i],QtCore.SIGNAL()
 
         # print("Hanler")
 
+    def checkADCoutput(self,i):
+        print("check ADC")
+        result = self.tangoDevices[i].command_inout("CheckAdcOutput")
+        if (result != -1):
+            self.measLCD[i].setProperty("intValue", result)
+        else:
+            common_func.setEnabledVoltageEdit(self,i,False)
+            if (self.checkActiveBox[i].isChecked()):
+                self.checkActiveBox[i].setChecked(False)
+            self.timer[i].stop()
+
+    def chargingOnOffCommand(self,i,state):
+        print("ChargingOnOff : " + str(i) + " " + str(state))
+        if (self.checkActiveBox[i].isChecked()):
+            self.checkActiveBox[i].setChecked(False)
+            self.tangoDevices[i].command_inout("ChargingOff")
+            if self.timer[i].isActive() == True:
+                self.timer[i].stop()
+            print("charging off")
+        else:
+            self.checkActiveBox[i].setChecked(True)
+            self.tangoDevices[i].command_inout("ChargingOn")
+            if self.timer[i].isActive() == False:
+                self.timer[i].start(10000)
+            print("charging on")
+
+
     def setVoltageAttr(self,i):
         voltage = self.voltageValueSpinBox[i].value()
         self.tangoDevices[i].write_attribute("Voltage", voltage)
-        if (self.radioButton[i].isChecked() == False):
-            self.radioButton[i].setChecked(True)
+        if (self.checkActiveBox[i].isChecked() == False):
+            self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
-        print("voltage")
+        if self.timer[i].isActive() == False:
+            self.timer[i].start(10000)
+        print("voltage charging on")
         print(voltage)
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
             if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
                 self.tangoDevices[i].command_inout("Init")
+                common_func.checkStatus(self,self.tangoDevices[i],i)
                 print("reInit")
-
-    def chargingOnCommand(self,i):
-        print("Charging : " + str(i))
-        if (self.radioButton[i].isChecked()):
-            self.radioButton[i].setChecked(False)
-            self.tangoDevices[i].command_inout("ChargingOff")
-        else:
-            self.radioButton[i].setChecked(True)
-            self.tangoDevices[i].command_inout("ChargingOn")
-        # for i in range(0,len(self.tangoDevices)):
-        #     if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
-        #         self.tangoDevices[i].command_inout("ChargingOn")
-        #         print("chargingOnCommand")
 
 
     def centerOnScreen (self,MainWindow):
@@ -274,7 +292,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
 
     def tempConsoleOut(self,i):
-        val = self.voltageValueSpinBox[i].value()
-        print "sds"
-        print(val)
+        # val = self.voltageValueSpinBox[i].value()
+        # print i
+        print "sds" + str(i)
+        # print(val)
 
