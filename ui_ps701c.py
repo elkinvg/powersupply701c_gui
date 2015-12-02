@@ -12,7 +12,6 @@ from PyQt4 import QtCore, QtGui
 import PyTango
 from PyTango import Except
 
-from dialogParameter import SettingsDialog
 # from datetime import datetime
 # import os.path
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
@@ -20,7 +19,9 @@ from taurus.qt.qtgui.input import TaurusWheelEdit
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
 from taurus.qt.qtgui.input import TaurusValueSpinBox
-import common_func
+
+MDEBUG = True
+timerval = 10000
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -54,7 +55,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkActiveBox = list()
 
         self.timer = list() # список таймеров
-        # self.voltageLabel = list()
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -67,13 +67,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.reconnectButton.clicked.connect(self.reconnectCommand)
 
+        # timer init
         for i in range(0,len(self.devices)):
-            self.timer.append(common_func.MyTimer()) # установка таймера для проверки актуального заряда конденсаторов
+            self.timer.append(MyTimer()) # установка таймера для проверки актуального заряда конденсаторов
             self.timer[i].iter = i
             self.setWidgetView(i) # установка параметров виджетов
             self.setSignalHandler(i) # установка обработчиков
         # clicked connect
-        # self.settingsButton.clicked.connect(self.tempConsoleOut)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -81,10 +81,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.layouts(MainWindow)  # установка компоновки
 
-        # self.centerOnScreen()
         self.centerOnScreen(MainWindow)
-        common_func.initTangoDevices(self)
-        print("Number of TanDev: " + str(self.tangoDevices))
+        self.initTangoDevices() # tango devices
+        if MDEBUG:
+            print("Number of TanDev: " + str(self.tangoDevices))
 
         self.widgetSizes(MainWindow) # установка размеров виджетов
 
@@ -167,23 +167,18 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget.setLayout(mainLayout)
 
     def setWidgetView(self,i):
-        # self.statusLed.append(TaurusLed(self))
         self.statusLed.append(MyTaurusLed(self))
         self.statusLed[i].iter = i
         self.statusLed[i].setModel(str(self.devices[i]) + "/State")
         self.statusLed[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        # df = QtGui.QLCDNumber
-        # df.setFixedHeight()
-
-        self.statusLed[i].setAutoTooltip(False) # ??? Всплывающая подсказка
+        # self.statusLed[i].setAutoTooltip(False) # ??? Всплывающая подсказка
 
         self.voltageValueSpinBox.append(QtGui.QSpinBox())
         self.voltageValueSpinBox[i].setMinimum(50)
         self.voltageValueSpinBox[i].setMaximum(500)
         self.voltageValueSpinBox[i].setValue(50)
 
-        # self.setVoltageButton.append(QtGui.QPushButton())
-        self.setVoltageButton.append(common_func.MyQPushButton())
+        self.setVoltageButton.append(MyQPushButton())
         self.setVoltageButton[i].setText("set Voltage")
         self.setVoltageButton[i].iter = i
 
@@ -193,17 +188,12 @@ class Ui_MainWindow(QtGui.QMainWindow):
         # self.measLCD[i].setBgRole('state')
         # self.measLCD[i].setFgRole('state')
         palette = self.measLCD[i].palette()
-        # sd = TaurusLCD()
-        # sd.set
-
         palette.setColor(palette.WindowText, QtGui.QColor("green"))
         # palette.setColor(palette.Background, QtGui.QColor("black"))
         palette.setColor(palette.Light, QtGui.QColor("orange"))
         palette.setColor(palette.Dark, QtGui.QColor("magenta"))
         self.measLCD[i].setPalette(palette)
         self.measLCD[i].setSegmentStyle(TaurusLCD.Flat)
-
-        # self.voltageLabel.append(TaurusLabel())
 
         self.deviceNameLabel.append(QtGui.QLabel())
         textLabel = "<font color = black>"
@@ -214,9 +204,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.deviceNameLabel[i].setFixedWidth(200)
         # self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
-        # self.radioButton.append(QtGui.QRadioButton())
-        # self.radioButton.append(QtGui.QCommandLinkButton())
-        self.checkActiveBox.append(common_func.MyQCheckBox())
+        self.checkActiveBox.append(MyQCheckBox())
         self.checkActiveBox[i].setText("Charging")
         self.checkActiveBox[i].iter = i
         self.checkActiveBox[i].setChecked(False)
@@ -226,42 +214,42 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.connect(self.checkActiveBox[i], QtCore.SIGNAL("stateChanged(int,int)"),self.chargingOnOffCommand)
         self.connect(self.timer[i],QtCore.SIGNAL("timeout(int)"),self.checkADCoutput)
         self.connect(self.statusLed[i],QtCore.SIGNAL("clicked(int)"),self.statusLedInfo)
-        # for i in range(0,len(self.tangoDevices)):
-        #     if self.tangoDevices[i] != False:
-        #         self.connect(self.measLCD[i],QtCore.SIGNAL()
-
-        # print("Hanler")
 
     def statusLedInfo(self,i):
-        print("StatusLedInfo: " + str(i))
-        cd = common_func.deviseInfoDialog(self.tangoDevices[i],self)
+        if MDEBUG:
+            print("StatusLedInfo: " + str(i))
+        cd = deviceInfoDialog(self.tangoDevices[i],self)
         cd.show()
 
     def checkADCoutput(self,i):
-        print("check ADC")
+        if MDEBUG:
+            print("check ADC")
         result = self.tangoDevices[i].command_inout("CheckAdcOutput")
         if (result != -1):
             self.measLCD[i].setProperty("intValue", result)
         else:
-            common_func.setEnabledVoltageEdit(self,i,False)
+            self.setEnabledVoltageEdit(i,False)
             if (self.checkActiveBox[i].isChecked()):
                 self.checkActiveBox[i].setChecked(False)
             self.timer[i].stop()
 
     def chargingOnOffCommand(self,i,state):
-        print("ChargingOnOff : " + str(i) + " " + str(state))
+        if MDEBUG:
+            print("ChargingOnOff : " + str(i) + " " + str(state))
         if (self.checkActiveBox[i].isChecked()):
             self.checkActiveBox[i].setChecked(False)
             self.tangoDevices[i].command_inout("ChargingOff")
             if self.timer[i].isActive() == True:
                 self.timer[i].stop()
-            print("charging off")
+            if MDEBUG:
+                print("charging off")
         else:
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
             if self.timer[i].isActive() == False:
-                self.timer[i].start(10000)
-            print("charging on")
+                self.timer[i].start(timerval)
+            if MDEBUG:
+                print("charging on")
 
 
     def setVoltageAttr(self,i):
@@ -271,19 +259,77 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
         if self.timer[i].isActive() == False:
-            self.timer[i].start(10000)
-        print("voltage charging on")
-        print(voltage)
+            self.timer[i].start(timerval)
+        if MDEBUG:
+            print("voltage charging on")
+            print(voltage)
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
             if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
                 self.tangoDevices[i].command_inout("Init")
-                common_func.checkStatus(self,self.tangoDevices[i],i)
-                print("reInit")
+                self.checkStatus(self.tangoDevices[i],i)
+                if MDEBUG:
+                    print("reInit")
 
+    def initTangoDevices(self):
+        if len(self.devices) < 1:
+            print("Devices less than 1")
+            return
+        # print "Number of devices: " + str(len(self.devices)) # for debug
+    
+        for i in range(0,len(self.devices)):
+            try:
+                # print("Device: -> " + self.devices[i])
+                deviceTan = PyTango.DeviceProxy(self.devices[i])
+                self.checkStatus(deviceTan,i)
+                self.tangoDevices.append(deviceTan)
+            except PyTango.DevFailed as exc:
+                self.statusLed[i].setLedColor("red")
+                self.statusLed[i].setToolTip(str(exc)) # ??? test
+                # self.voltageValueSpinBox[i].setEnabled(False)
+                # self.setVoltageButton[i].setEnabled(False)
+                self.setEnabledVoltageEdit(i,False)
+                self.tangoDevices.append(False)
+                
+    def checkStatus(self,deviceTan,i):
+        if deviceTan.state() == PyTango.DevState.OFF:
+            if MDEBUG:
+                self.setEnabledVoltageEdit(i,True) # ??? test
+                self.statusLed[i].setToolTip("TESTOFF") # ??? test
+                print("TESTOFF is True now")
+            else:
+                self.setEnabledVoltageEdit(i,False)
+        elif deviceTan.state() == PyTango.DevState.FAULT:
+            if MDEBUG:
+                self.setEnabledVoltageEdit(i,True)
+                self.statusLed[i].setToolTip("TESTFAULT") # ??? test
+                print("TESTFAULT is True now")
+            else:
+                self.setEnabledVoltageEdit(i,False)
+        elif deviceTan.state() == PyTango.DevState.ON:
+            if MDEBUG:
+                self.statusLed[i].setToolTip("TESTON") # ??? test
+                print("TESTON")
+            else:
+                self.setEnabledVoltageEdit(i,True)
+        elif deviceTan.state() == PyTango.DevState.DISABLE:
+            self.setEnabledVoltageEdit(i,False)
+            if MDEBUG:
+                self.statusLed[i].setToolTip("TESTDISABLE") # ??? test
+                print("TESTDISABLE")
+        elif deviceTan.state() == PyTango.DevState.RUNNING:
+            self.setEnabledVoltageEdit(i,True)
+            if MDEBUG:
+                self.statusLed[i].setToolTip("TESTRUNNING") # ??? test
+                print("TESTRUNNING")
 
-    def centerOnScreen (self,MainWindow):
+    def setEnabledVoltageEdit(self,iter,isEnabled):
+        self.voltageValueSpinBox[iter].setEnabled(isEnabled)
+        self.setVoltageButton[iter].setEnabled(isEnabled)
+        self.checkActiveBox[iter].setEnabled(isEnabled)
+
+    def centerOnScreen(self,MainWindow):
         resolution = QtGui.QDesktopWidget().screenGeometry()
         MainWindow.move((resolution.width() / 2) - (self.frameSize().width() / 2),
                   (resolution.height() / 2) - (self.frameSize().height() / 2))
@@ -313,3 +359,62 @@ class MyTaurusLed(TaurusLed):
 
     def mouseReleaseEvent(self, ev):
         self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)
+
+class deviceInfoDialog(QtGui.QDialog):
+    def __init__(self,device, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.setFixedSize(400, 200)
+        self.buttonOk = QtGui.QPushButton('Ok', self)
+        vertLayout = QtGui.QVBoxLayout(self)
+        self.state = QtGui.QLineEdit()
+        self.status = QtGui.QTextEdit()
+
+        self.state.setReadOnly(True)
+        self.status.setReadOnly(True)
+
+        if device != False:
+            state = device.command_inout("State")
+            status = device.command_inout("Status")
+
+            font = QtGui.QFont()
+            font.setPointSize(10)
+            font.setBold(True)
+
+            self.status.setFont(font)
+            self.state.setFont(font)
+
+            self.state.setText(str(state))
+            self.status.setText(str(status))
+
+        vertLayout.addWidget(self.state)
+        vertLayout.addWidget(self.status)
+        buttonLayout = QtGui.QHBoxLayout(self)
+        buttonLayout.addStretch(0)
+        buttonLayout.addWidget(self.buttonOk)
+        vertLayout.addLayout(buttonLayout)
+
+        self.setLayout(vertLayout)
+
+        self.buttonOk.clicked.connect(self.accept)
+
+class MyQPushButton(QtGui.QPushButton):
+    def __init(self, parent):
+        QtGui.QPushButton.__init__(self, parent)
+
+    def mouseReleaseEvent(self, ev):
+        self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)
+
+class MyQCheckBox(QtGui.QCheckBox):
+    def __init(self, parent):
+        QtGui.QCheckBox.__init__(self, parent)
+
+    def mouseReleaseEvent(self, ev):
+        self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)
+        self.emit(QtCore.SIGNAL('stateChanged(int,int)'),self.iter,self.checkState())
+
+class MyTimer(QtCore.QTimer):
+    def __init(self, parent):
+        QtGui.QTimer.__init__(self, parent)
+
+    def timerEvent(self, event):
+        self.emit(QtCore.SIGNAL('timeout(int)'),self.iter)

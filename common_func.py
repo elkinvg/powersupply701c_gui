@@ -9,41 +9,41 @@ import PyTango
 from taurus.qt.qtgui.display import TaurusLed
 #from mercurial.changegroup import nocompress
 
-class deviseInfoDialog(QDialog):
-    def __init__(self,device, parent=None):
-        QWidget.__init__(self, parent)
-        self.setFixedSize(400, 200)
-        self.buttonOk = QPushButton('Ok', self)
-        vertLayout = QVBoxLayout(self)
-        self.state = QLineEdit()
-        self.status = QTextEdit()
-
-        self.state.setReadOnly(True)
-        self.status.setReadOnly(True)
-
-
-        if device!=False:
-            state = device.command_inout("State")
-            status = device.command_inout("Status")
-
-            font = QFont()
-            font.setPointSize(10)
-            font.setBold(True)
-
-            self.status.setFont(font)
-            self.state.setFont(font)
-
-            self.state.setText(str(state))
-            self.status.setText(str(status))
-
-        vertLayout.addWidget(self.state)
-        vertLayout.addWidget(self.status)
-        buttonLayout = QHBoxLayout(self)
-        buttonLayout.addStretch(0)
-        buttonLayout.addWidget(self.buttonOk)
-        vertLayout.addLayout(buttonLayout)
-
-        self.buttonOk.clicked.connect(self.accept)
+# class deviseInfoDialog(QDialog):
+#     def __init__(self,device, parent=None):
+#         QWidget.__init__(self, parent)
+#         self.setFixedSize(400, 200)
+#         self.buttonOk = QPushButton('Ok', self)
+#         vertLayout = QVBoxLayout(self)
+#         self.state = QLineEdit()
+#         self.status = QTextEdit()
+#
+#         self.state.setReadOnly(True)
+#         self.status.setReadOnly(True)
+#
+#
+#         if device!=False:
+#             state = device.command_inout("State")
+#             status = device.command_inout("Status")
+#
+#             font = QFont()
+#             font.setPointSize(10)
+#             font.setBold(True)
+#
+#             self.status.setFont(font)
+#             self.state.setFont(font)
+#
+#             self.state.setText(str(state))
+#             self.status.setText(str(status))
+#
+#         vertLayout.addWidget(self.state)
+#         vertLayout.addWidget(self.status)
+#         buttonLayout = QHBoxLayout(self)
+#         buttonLayout.addStretch(0)
+#         buttonLayout.addWidget(self.buttonOk)
+#         vertLayout.addLayout(buttonLayout)
+#
+#         self.buttonOk.clicked.connect(self.accept)
 
 
 
@@ -141,95 +141,95 @@ class deviseInfoDialog(QDialog):
 #     def setDefaultValue(self,text):
 #         self.socketName.setText(QString(text))
 
-class ExtendedQLabel(QLabel):
+# class ExtendedQLabel(QLabel):
+#
+#     def __init(self, parent):
+#         QLabel.__init__(self, parent)
+#
+#     def deviceNameF(self,name):
+#         self.deviceName = name
+#
+#     def mouseReleaseEvent(self, ev):
+#         self.emit(SIGNAL('clicked(QString)'),self.deviceName)
 
-    def __init(self, parent):
-        QLabel.__init__(self, parent)
+# class MyQPushButton(QPushButton):
+#     def __init(self, parent):
+#         QPushButton.__init__(self, parent)
+#
+#     def mouseReleaseEvent(self, ev):
+#         self.emit(SIGNAL('clicked(int)'),self.iter)
 
-    def deviceNameF(self,name):
-        self.deviceName = name
+# class MyQCheckBox(QCheckBox):
+#     def __init(self, parent):
+#         QCheckBox.__init__(self, parent)
+#
+#     def mouseReleaseEvent(self, ev):
+#         self.emit(SIGNAL('clicked(int)'),self.iter)
+#         self.emit(SIGNAL('stateChanged(int,int)'),self.iter,self.checkState())
 
-    def mouseReleaseEvent(self, ev):
-        self.emit(SIGNAL('clicked(QString)'),self.deviceName)
+# class MyTimer(QTimer):
+#     def __init(self, parent):
+#         QTimer.__init__(self, parent)
+#
+#     def timerEvent(self, event):
+#         self.emit(SIGNAL('timeout(int)'),self.iter)
 
-class MyQPushButton(QPushButton):
-    def __init(self, parent):
-        QPushButton.__init__(self, parent)
+# def initTangoDevices(qobject):
+#     if len(qobject.devices) < 1:
+#         print("Devices less than 1")
+#         return
+#     # print "Number of devices: " + str(len(qobject.devices)) # for debug
+#
+#     for i in range(0,len(qobject.devices)):
+#         try:
+#             # print("Device: -> " + qobject.devices[i])
+#             deviceTan = PyTango.DeviceProxy(qobject.devices[i])
+#             checkStatus(qobject,deviceTan,i)
+#             qobject.tangoDevices.append(deviceTan)
+#         except PyTango.DevFailed as exc:
+#             qobject.statusLed[i].setLedColor("red")
+#             qobject.statusLed[i].setToolTip(str(exc)) # ??? test
+#             # qobject.voltageValueSpinBox[i].setEnabled(False)
+#             # qobject.setVoltageButton[i].setEnabled(False)
+#             setEnabledVoltageEdit(qobject,i,False)
+#             qobject.tangoDevices.append(False)
 
-    def mouseReleaseEvent(self, ev):
-        self.emit(SIGNAL('clicked(int)'),self.iter)
-
-class MyQCheckBox(QCheckBox):
-    def __init(self, parent):
-        QCheckBox.__init__(self, parent)
-
-    def mouseReleaseEvent(self, ev):
-        self.emit(SIGNAL('clicked(int)'),self.iter)
-        self.emit(SIGNAL('stateChanged(int,int)'),self.iter,self.checkState())
-
-class MyTimer(QTimer):
-    def __init(self, parent):
-        QTimer.__init__(self, parent)
-
-    def timerEvent(self, event):
-        self.emit(SIGNAL('timeout(int)'),self.iter)
-
-def initTangoDevices(qobject):
-    if len(qobject.devices) < 1:
-        print("Devices less than 1")
-        return
-    # print "Number of devices: " + str(len(qobject.devices)) # for debug
-
-    for i in range(0,len(qobject.devices)):
-        try:
-            # print("Device: -> " + qobject.devices[i])
-            deviceTan = PyTango.DeviceProxy(qobject.devices[i])
-            checkStatus(qobject,deviceTan,i)
-            qobject.tangoDevices.append(deviceTan)
-        except PyTango.DevFailed as exc:
-            qobject.statusLed[i].setLedColor("red")
-            qobject.statusLed[i].setToolTip(str(exc)) # ??? test
-            # qobject.voltageValueSpinBox[i].setEnabled(False)
-            # qobject.setVoltageButton[i].setEnabled(False)
-            setEnabledVoltageEdit(qobject,i,False)
-            qobject.tangoDevices.append(False)
-
-def checkStatus(qobject,deviceTan,i):
-    if deviceTan.state() == PyTango.DevState.OFF:
-        # qobject.statusLed[i].setLedColor("white")
-        # qobject.voltageValueSpinBox[i].setEnabled(False)
-        # qobject.setVoltageButton[i].setEnabled(False)
-        # setEnabledVoltageEdit(qobject,i,False)
-        setEnabledVoltageEdit(qobject,i,True) # ??? test
-        qobject.statusLed[i].setToolTip("TESTOFF") # ??? test
-        print("TESTOFF is True now")
-    elif deviceTan.state() == PyTango.DevState.FAULT:
-        # qobject.statusLed[i].setLedColor("red")
-        # qobject.voltageValueSpinBox[i].setEnabled(False)
-        # qobject.setVoltageButton[i].setEnabled(False)
-        setEnabledVoltageEdit(qobject,i,True)
-        qobject.statusLed[i].setToolTip("TESTFAULT") # ??? test
-        # print qobject.statusLed[i].getFormatedToolTip(True)
-        print("TESTFAULT is True now")
-    elif deviceTan.state() == PyTango.DevState.ON:
-        # qobject.statusLed[i].setLedColor("green")
-        # qobject.voltageValueSpinBox[i].setEnabled(True)
-        # qobject.setVoltageButton[i].setEnabled(True)
-        setEnabledVoltageEdit(qobject,i,True)
-        qobject.statusLed[i].setToolTip("TESTON") # ??? test
-        # print("TESTON")
-    elif deviceTan.state() == PyTango.DevState.DISABLE:
-        # qobject.voltageValueSpinBox[i].setEnabled(False)
-        # qobject.setVoltageButton[i].setEnabled(False)
-        setEnabledVoltageEdit(qobject,i,False)
-        qobject.statusLed[i].setToolTip("TESTDISABLE") # ??? test
-    elif deviceTan.state() == PyTango.DevState.RUNNING:
-        # qobject.statusLed[i].setLedColor("green")
-        # qobject.voltageValueSpinBox[i].setEnabled(True)
-        # qobject.setVoltageButton[i].setEnabled(True)
-        setEnabledVoltageEdit(qobject,i,True)
-        qobject.statusLed[i].setToolTip("TESTRUNNING") # ??? test
-        # print("TESTON")
+# def checkStatus(qobject,deviceTan,i):
+#     if deviceTan.state() == PyTango.DevState.OFF:
+#         # qobject.statusLed[i].setLedColor("white")
+#         # qobject.voltageValueSpinBox[i].setEnabled(False)
+#         # qobject.setVoltageButton[i].setEnabled(False)
+#         # setEnabledVoltageEdit(qobject,i,False)
+#         setEnabledVoltageEdit(qobject,i,True) # ??? test
+#         qobject.statusLed[i].setToolTip("TESTOFF") # ??? test
+#         print("TESTOFF is True now")
+#     elif deviceTan.state() == PyTango.DevState.FAULT:
+#         # qobject.statusLed[i].setLedColor("red")
+#         # qobject.voltageValueSpinBox[i].setEnabled(False)
+#         # qobject.setVoltageButton[i].setEnabled(False)
+#         setEnabledVoltageEdit(qobject,i,True)
+#         qobject.statusLed[i].setToolTip("TESTFAULT") # ??? test
+#         # print qobject.statusLed[i].getFormatedToolTip(True)
+#         print("TESTFAULT is True now")
+#     elif deviceTan.state() == PyTango.DevState.ON:
+#         # qobject.statusLed[i].setLedColor("green")
+#         # qobject.voltageValueSpinBox[i].setEnabled(True)
+#         # qobject.setVoltageButton[i].setEnabled(True)
+#         setEnabledVoltageEdit(qobject,i,True)
+#         qobject.statusLed[i].setToolTip("TESTON") # ??? test
+#         # print("TESTON")
+#     elif deviceTan.state() == PyTango.DevState.DISABLE:
+#         # qobject.voltageValueSpinBox[i].setEnabled(False)
+#         # qobject.setVoltageButton[i].setEnabled(False)
+#         setEnabledVoltageEdit(qobject,i,False)
+#         qobject.statusLed[i].setToolTip("TESTDISABLE") # ??? test
+#     elif deviceTan.state() == PyTango.DevState.RUNNING:
+#         # qobject.statusLed[i].setLedColor("green")
+#         # qobject.voltageValueSpinBox[i].setEnabled(True)
+#         # qobject.setVoltageButton[i].setEnabled(True)
+#         setEnabledVoltageEdit(qobject,i,True)
+#         qobject.statusLed[i].setToolTip("TESTRUNNING") # ??? test
+#         # print("TESTON")
 
 
 # def checkADCOutput(qobject,iter,tanDev):
@@ -241,10 +241,10 @@ def checkStatus(qobject,deviceTan,i):
 #         setEnabledVoltageEdit(qobject,iter,True)
 #         qobject.measLCD[iter].setProperty("intValue", result)
 
-def setEnabledVoltageEdit(qobject,iter,isEnabled):
-    qobject.voltageValueSpinBox[iter].setEnabled(isEnabled)
-    qobject.setVoltageButton[iter].setEnabled(isEnabled)
-    qobject.checkActiveBox[iter].setEnabled(isEnabled)
+# def setEnabledVoltageEdit(qobject,iter,isEnabled):
+#     qobject.voltageValueSpinBox[iter].setEnabled(isEnabled)
+#     qobject.setVoltageButton[iter].setEnabled(isEnabled)
+#     qobject.checkActiveBox[iter].setEnabled(isEnabled)
 
 # def chargingOnCommand(tanDev):
 #     tanDev.command_inout("ChargingOn")
