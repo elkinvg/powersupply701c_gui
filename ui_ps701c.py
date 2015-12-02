@@ -62,8 +62,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.reconnectButton = TaurusCommandButton(self.centralwidget)
         self.reconnectButton.setObjectName(_fromUtf8("reconnectButton"))
 
-        self.settingsButton = QtGui.QPushButton(self.centralwidget)
-        self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
+        # self.settingsButton = QtGui.QPushButton(self.centralwidget)
+        # self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
 
         self.reconnectButton.clicked.connect(self.reconnectCommand)
 
@@ -141,7 +141,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         hbottomLayout = QtGui.QHBoxLayout()
         hbottomLayout.addStretch(1)
-        hbottomLayout.addWidget(self.settingsButton )
+        # hbottomLayout.addWidget(self.settingsButton )
         hbottomLayout.addWidget(self.reconnectButton)
 
         j = k = 0
@@ -167,8 +167,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget.setLayout(mainLayout)
 
     def setWidgetView(self,i):
-        self.statusLed.append(TaurusLed(self))
+        # self.statusLed.append(TaurusLed(self))
+        self.statusLed.append(MyTaurusLed(self))
+        self.statusLed[i].iter = i
         self.statusLed[i].setModel(str(self.devices[i]) + "/State")
+        self.statusLed[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         # df = QtGui.QLCDNumber
         # df.setFixedHeight()
 
@@ -209,7 +212,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.deviceNameLabel[i].setText(textLabel)
         self.deviceNameLabel[i].setFixedWidth(200)
-        self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        # self.deviceNameLabel[i].setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         # self.radioButton.append(QtGui.QRadioButton())
         # self.radioButton.append(QtGui.QCommandLinkButton())
@@ -222,11 +225,17 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
         self.connect(self.checkActiveBox[i], QtCore.SIGNAL("stateChanged(int,int)"),self.chargingOnOffCommand)
         self.connect(self.timer[i],QtCore.SIGNAL("timeout(int)"),self.checkADCoutput)
+        self.connect(self.statusLed[i],QtCore.SIGNAL("clicked(int)"),self.statusLedInfo)
         # for i in range(0,len(self.tangoDevices)):
         #     if self.tangoDevices[i] != False:
         #         self.connect(self.measLCD[i],QtCore.SIGNAL()
 
         # print("Hanler")
+
+    def statusLedInfo(self,i):
+        print("StatusLedInfo: " + str(i))
+        cd = common_func.deviseInfoDialog(self.tangoDevices[i],self)
+        cd.show()
 
     def checkADCoutput(self,i):
         print("check ADC")
@@ -287,7 +296,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             # self.measLCD[i].setText(_translate("MainWindow", " 99.99", None))
 
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
-        self.settingsButton.setText(_translate("MainWindow","Settings",None))
+        # self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
 
 
@@ -297,3 +306,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         print "sds" + str(i)
         # print(val)
 
+
+class MyTaurusLed(TaurusLed):
+    def __init(self, parent):
+        TaurusLed.__init__(self, parent)
+
+    def mouseReleaseEvent(self, ev):
+        self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)

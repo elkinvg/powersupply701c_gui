@@ -3,7 +3,7 @@ import PyTango
 
 from PyQt4.QtCore import QString
 
-from common_func import SettingsDialog, ExtendedQLabel
+# from common_func import SettingsDialog, ExtendedQLabel
 from taurus.qt.qtgui.display import TaurusLed
 
 try:

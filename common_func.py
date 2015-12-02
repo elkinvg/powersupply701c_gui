@@ -1,7 +1,7 @@
 #from PyQt4 import QtGui
 from PyQt4.QtGui import QDialogButtonBox, QDialog, QWidget
 from PyQt4.QtGui import QLineEdit, QLabel, QPushButton, QCheckBox
-from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QFont
+from PyQt4.QtGui import QVBoxLayout, QTextEdit, QHBoxLayout, QFont
 from PyQt4.QtCore import Qt, QString, SIGNAL, QTimer
 
 import PyTango
@@ -9,100 +9,137 @@ import PyTango
 from taurus.qt.qtgui.display import TaurusLed
 #from mercurial.changegroup import nocompress
 
-
-class SettingsDialog(QDialog):
-    def __init__(self,name, parent=None):
+class deviseInfoDialog(QDialog):
+    def __init__(self,device, parent=None):
         QWidget.__init__(self, parent)
-        #self.setGeometry(300, 300, 350, 80)
-
-
         self.setFixedSize(400, 200)
-        self.setWindowTitle(name)
-
-        # self.buttonOk = QtGui.QPushButton('Ok', self)
-        # self.buttonCancel = QtGui.QPushButton('Cancel',self)
-        self.buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal
-        )
-
-        # self.socketName = QLineEdit()
-        # self.nameOfServLabel = QLabel('Server name')
-        #
-        # font = QFont()
-        # font.setPointSize(10)
-        # font.setBold(True)
-        # self.infoLabel = QLabel();
-        # self.infoLabel.setFont(font)
-        # textLabel = "<font color = red>"
-        # textLabel += "Enter device name of Socket for PowerSupply "
-        # textLabel += "in format \"domain/family/member\" <br>"
-        # textLabel += "Example: socket/sock_ps701/1"
-        # textLabel += "<\font>"
-        # self.infoLabel.setWordWrap(True)
-        # self.infoLabel.setText(textLabel)
-
-
-
-        # layoutup.addWidget(self.nameOfServLabel)
-        # layoutup.addWidget(self.socketName)
-
+        self.buttonOk = QPushButton('Ok', self)
         vertLayout = QVBoxLayout(self)
-        layoutup = QHBoxLayout()
-        layoutdown = QHBoxLayout()
+        self.state = QLineEdit()
+        self.status = QTextEdit()
 
-        layoutdown.addStretch(1)
-        layoutdown.addWidget(self.buttons)
-
-        # vertLayout.addWidget(self.infoLabel)
+        self.state.setReadOnly(True)
+        self.status.setReadOnly(True)
 
 
-        self.statusLed = TaurusLed(self)
-        self.statusLed.setModel(name + "/State")
+        if device!=False:
+            state = device.command_inout("State")
+            status = device.command_inout("Status")
 
-        layoutup.addWidget(self.statusLed)
+            font = QFont()
+            font.setPointSize(10)
+            font.setBold(True)
 
+            self.status.setFont(font)
+            self.state.setFont(font)
 
-        vertLayout.addLayout(layoutup)
-        vertLayout.addLayout(layoutdown)
+            self.state.setText(str(state))
+            self.status.setText(str(status))
 
-        self.setModal(True)
+        vertLayout.addWidget(self.state)
+        vertLayout.addWidget(self.status)
+        buttonLayout = QHBoxLayout(self)
+        buttonLayout.addStretch(0)
+        buttonLayout.addWidget(self.buttonOk)
+        vertLayout.addLayout(buttonLayout)
 
-        # self.buttons.accepted.connect(self.getValue)
-        self.buttons.accepted.connect(self.accept)
-        self.buttons.rejected.connect(self.reject)
-        #self.button.clicked.connect(self.getValue)
-
-    def setDevice(self,device):
-        self.device = device
-
-        vertLayout = QVBoxLayout(self)
-        layoutup = QHBoxLayout()
-        layoutdown = QHBoxLayout()
-
-        layoutdown.addStretch(1)
-        layoutdown.addWidget(self.buttons)
-
-        # vertLayout.addWidget(self.infoLabel)
-
-
-        self.statusLed = TaurusLed(self)
-        self.statusLed.setModel(str(self.devices) + "/State")
-
-        layoutup.addWidget(self.statusLed)
-
-
-        vertLayout.addLayout(layoutup)
-        vertLayout.addLayout(layoutdown)
+        self.buttonOk.clicked.connect(self.accept)
 
 
 
-    def getValue(self):
-        getText = self.socketName.text()
-        return getText
-
-    def setDefaultValue(self,text):
-        self.socketName.setText(QString(text))
+# class SettingsDialog(QDialog):
+#     def __init__(self,name, parent=None):
+#         QWidget.__init__(self, parent)
+#         #self.setGeometry(300, 300, 350, 80)
+#
+#
+#         self.setFixedSize(400, 200)
+#         self.setWindowTitle(name)
+#
+#         # self.buttonOk = QtGui.QPushButton('Ok', self)
+#         # self.buttonCancel = QtGui.QPushButton('Cancel',self)
+#         self.buttons = QDialogButtonBox(
+#             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+#             Qt.Horizontal
+#         )
+#
+#         # self.socketName = QLineEdit()
+#         # self.nameOfServLabel = QLabel('Server name')
+#         #
+#         # font = QFont()
+#         # font.setPointSize(10)
+#         # font.setBold(True)
+#         # self.infoLabel = QLabel();
+#         # self.infoLabel.setFont(font)
+#         # textLabel = "<font color = red>"
+#         # textLabel += "Enter device name of Socket for PowerSupply "
+#         # textLabel += "in format \"domain/family/member\" <br>"
+#         # textLabel += "Example: socket/sock_ps701/1"
+#         # textLabel += "<\font>"
+#         # self.infoLabel.setWordWrap(True)
+#         # self.infoLabel.setText(textLabel)
+#
+#
+#
+#         # layoutup.addWidget(self.nameOfServLabel)
+#         # layoutup.addWidget(self.socketName)
+#
+#         vertLayout = QVBoxLayout(self)
+#         layoutup = QHBoxLayout()
+#         layoutdown = QHBoxLayout()
+#
+#         layoutdown.addStretch(1)
+#         layoutdown.addWidget(self.buttons)
+#
+#         # vertLayout.addWidget(self.infoLabel)
+#
+#
+#         self.statusLed = TaurusLed(self)
+#         self.statusLed.setModel(name + "/State")
+#
+#         layoutup.addWidget(self.statusLed)
+#
+#
+#         vertLayout.addLayout(layoutup)
+#         vertLayout.addLayout(layoutdown)
+#
+#         self.setModal(True)
+#
+#         # self.buttons.accepted.connect(self.getValue)
+#         self.buttons.accepted.connect(self.accept)
+#         self.buttons.rejected.connect(self.reject)
+#         #self.button.clicked.connect(self.getValue)
+#
+#     def setDevice(self,device):
+#         self.device = device
+#
+#         vertLayout = QVBoxLayout(self)
+#         layoutup = QHBoxLayout()
+#         layoutdown = QHBoxLayout()
+#
+#         layoutdown.addStretch(1)
+#         layoutdown.addWidget(self.buttons)
+#
+#         # vertLayout.addWidget(self.infoLabel)
+#
+#
+#         self.statusLed = TaurusLed(self)
+#         self.statusLed.setModel(str(self.devices) + "/State")
+#
+#         layoutup.addWidget(self.statusLed)
+#
+#
+#         vertLayout.addLayout(layoutup)
+#         vertLayout.addLayout(layoutdown)
+#
+#
+#
+#     def getValue(self):
+#         getText = self.socketName.text()
+#         return getText
+#
+#     def setDefaultValue(self,text):
+#         self.socketName.setText(QString(text))
 
 class ExtendedQLabel(QLabel):
 
