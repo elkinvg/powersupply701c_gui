@@ -1,3 +1,9 @@
 *.pyc
+*.pyo
 .git/*
 .idea/*
+*.back
+*~
+nohup*
+tst/*
+*.cfg
