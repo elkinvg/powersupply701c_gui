@@ -9,16 +9,17 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+
 import PyTango
 from PyTango import Except
 
 # from datetime import datetime
 # import os.path
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
-from taurus.qt.qtgui.input import TaurusWheelEdit
+# from taurus.qt.qtgui.input import TaurusWheelEdit
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
-from taurus.qt.qtgui.input import TaurusValueSpinBox
+# from taurus.qt.qtgui.input import TaurusValueSpinBox
 
 MDEBUG = True
 timerval = 10000
@@ -61,11 +62,12 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.reconnectButton = TaurusCommandButton(self.centralwidget)
         self.reconnectButton.setObjectName(_fromUtf8("reconnectButton"))
-
-        # self.settingsButton = QtGui.QPushButton(self.centralwidget)
-        # self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
-
         self.reconnectButton.clicked.connect(self.reconnectCommand)
+
+
+        self.settingsButton = QtGui.QPushButton(self.centralwidget)
+        # self.settingsButton.setObjectName(_fromUtf8("settingsButton"))
+        self.settingsButton.clicked.connect(self.showSettDialog)
 
         # timer init
         for i in range(0,len(self.devices)):
@@ -141,7 +143,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         hbottomLayout = QtGui.QHBoxLayout()
         hbottomLayout.addStretch(1)
-        # hbottomLayout.addWidget(self.settingsButton )
+        hbottomLayout.addWidget(self.settingsButton )
         hbottomLayout.addWidget(self.reconnectButton)
 
         j = k = 0
@@ -210,6 +212,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkActiveBox[i].setChecked(False)
 
     def setSignalHandler(self,i):
+        # self.reconnectButton.clicked.connect(self.reconnectCommand)
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
         self.connect(self.checkActiveBox[i], QtCore.SIGNAL("stateChanged(int,int)"),self.chargingOnOffCommand)
         self.connect(self.timer[i],QtCore.SIGNAL("timeout(int)"),self.checkADCoutput)
@@ -324,6 +327,27 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.statusLed[i].setToolTip("TESTRUNNING") # ??? test
                 print("TESTRUNNING")
 
+    def showSettDialog(self):
+        dial = SettingsDialog(self)
+        dial.show()
+        if dial.exec_():
+            ntime = dial.getValue()
+            timerval = ntime
+            for i in range(0,len(self.tangoDevices)):
+                if self.tangoDevices[i] != False:
+                    if (self.tangoDevices[i].state() == PyTango.DevState.ON
+                        or self.tangoDevices[i].state() == PyTango.DevState.RUNNING):
+                        if self.timer[i].isActive() == True:
+                            self.timer[i].stop()
+                            self.timer[i].start(ntime*1000)
+                        else:
+                            self.timer[i].start(ntime*1000)
+            if MDEBUG:
+                print("EXEC DIAL" + str(ntime))
+        else:
+            if MDEBUG:
+                print("ELSE DIAL")
+
     def setEnabledVoltageEdit(self,iter,isEnabled):
         self.voltageValueSpinBox[iter].setEnabled(isEnabled)
         self.setVoltageButton[iter].setEnabled(isEnabled)
@@ -342,7 +366,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             # self.measLCD[i].setText(_translate("MainWindow", " 99.99", None))
 
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
-        # self.settingsButton.setText(_translate("MainWindow","Settings",None))
+        self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
 
 
@@ -418,3 +442,36 @@ class MyTimer(QtCore.QTimer):
 
     def timerEvent(self, event):
         self.emit(QtCore.SIGNAL('timeout(int)'),self.iter)
+
+class SettingsDialog(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        vertLayout = QtGui.QVBoxLayout(self)
+        layout1 = QtGui.QHBoxLayout()
+
+        self.setFixedSize(400, 200)
+        self.timerSpinBox = QtGui.QSpinBox()
+        self.timerSpinBox.setMinimum(1)
+        self.timerSpinBox.setMaximum(60)
+        self.timerSpinBox.setValue(10)
+        self.setModal(True)
+
+        self.label = QtGui.QLabel()
+        self.label.setText("timer in sec")
+
+        layout1.addWidget(self.label)
+        layout1.addWidget(self.timerSpinBox)
+
+        self.buttons = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel,
+            QtCore.Qt.Horizontal
+        )
+
+        vertLayout.addLayout(layout1)
+        vertLayout.addWidget(self.buttons)
+
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+
+    def getValue(self):
+        return self.timerSpinBox.value()
