@@ -449,7 +449,7 @@ class SettingsDialog(QtGui.QDialog):
         vertLayout = QtGui.QVBoxLayout(self)
         layout1 = QtGui.QHBoxLayout()
 
-        self.setFixedSize(400, 200)
+        self.setFixedSize(300, 150)
         self.timerSpinBox = QtGui.QSpinBox()
         self.timerSpinBox.setMinimum(1)
         self.timerSpinBox.setMaximum(60)
