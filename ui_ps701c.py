@@ -20,6 +20,7 @@ from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
 # from taurus.qt.qtgui.input import TaurusValueSpinBox
+import time
 
 MDEBUG = True
 timerval = 10000
@@ -330,6 +331,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def showSettDialog(self):
         dial = SettingsDialog(self)
         dial.show()
+        self.settingsButton.setEnabled(False)
         if dial.exec_():
             ntime = dial.getValue()
             timerval = ntime
@@ -342,9 +344,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
                             self.timer[i].start(ntime*1000)
                         else:
                             self.timer[i].start(ntime*1000)
+            # self.settingsButton.setEnabled(False)
+            time.sleep(3) # for
+            self.settingsButton.setEnabled(True)
             if MDEBUG:
                 print("EXEC DIAL" + str(ntime))
         else:
+            self.settingsButton.setEnabled(True)
             if MDEBUG:
                 print("ELSE DIAL")
 
