@@ -231,11 +231,14 @@ class Ui_MainWindow(QtGui.QMainWindow):
         result = self.tangoDevices[i].command_inout("CheckAdcOutput")
         if (result != -1):
             self.measLCD[i].setProperty("intValue", result)
+            print("Result: " + str(result))
         else:
             self.setEnabledVoltageEdit(i,False)
             if (self.checkActiveBox[i].isChecked()):
                 self.checkActiveBox[i].setChecked(False)
             self.timer[i].stop()
+            if MDEBUG:
+                print("timer STOP")
 
     def chargingOnOffCommand(self,i,state):
         if MDEBUG:
@@ -266,7 +269,6 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.timer[i].start(timerval)
         if MDEBUG:
             print("voltage charging on")
-            print(voltage)
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
@@ -285,9 +287,24 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for i in range(0,len(self.devices)):
             try:
                 # print("Device: -> " + self.devices[i])
+                print("initTangoDevices: " + str(self.devices[i]))
                 deviceTan = PyTango.DeviceProxy(self.devices[i])
                 self.checkStatus(deviceTan,i)
                 self.tangoDevices.append(deviceTan)
+                print("TTT: " + str(deviceTan))
+
+
+                volt = deviceTan.get_attribute_config("Voltage")
+                # volt = deviceTan.get_attribute_list()
+                # volt = deviceTan.read_attribute("Voltage")
+                # volt = deviceTan.attribute_list_query()
+                # volt = deviceTan.state()
+                print("aaa")
+                self.voltageValueSpinBox[i].setMaximum(int(volt.max_value))
+
+                print(volt.min_value)
+                print(volt.max_value)
+
             except PyTango.DevFailed as exc:
                 self.statusLed[i].setLedColor("red")
                 self.statusLed[i].setToolTip(str(exc)) # ??? test
