@@ -57,6 +57,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkActiveBox = list()
 
         self.timer = list() # список таймеров
+        self.timerVal = timerval
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -102,6 +103,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             MainWindow.setFixedSize(horWinSize,vertWinSize)
             for i in range(0,len(self.devices)):
                 self.checkActiveBox[i].setFixedWidth(120)
+                self.statusLed[i].setFixedSize(30,30)
         else:
             horWinSize = 800
             vertWinSize = 80 + len(self.devices)*80
@@ -229,7 +231,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if MDEBUG:
             print("check ADC")
         result = self.tangoDevices[i].command_inout("CheckAdcOutput")
-        if (result != -1):
+        if (result != 65535):
             self.measLCD[i].setProperty("intValue", result)
             print("Result: " + str(result))
         else:
@@ -254,7 +256,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
             if self.timer[i].isActive() == False:
-                self.timer[i].start(timerval)
+                self.timer[i].start(self.timerVal)
             if MDEBUG:
                 print("charging on")
 
@@ -266,7 +268,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
         if self.timer[i].isActive() == False:
-            self.timer[i].start(timerval)
+            self.timer[i].start(self.timerVal)
         if MDEBUG:
             print("voltage charging on")
 
@@ -287,11 +289,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for i in range(0,len(self.devices)):
             try:
                 # print("Device: -> " + self.devices[i])
-                print("initTangoDevices: " + str(self.devices[i]))
+                if MDEBUG:
+                    print("initTangoDevices: " + str(self.devices[i]))
                 deviceTan = PyTango.DeviceProxy(self.devices[i])
                 self.checkStatus(deviceTan,i)
                 self.tangoDevices.append(deviceTan)
-                print("TTT: " + str(deviceTan))
+                if MDEBUG:
+                    print("Registered devices: " + str(deviceTan))
 
 
                 volt = deviceTan.get_attribute_config("Voltage")
@@ -299,11 +303,17 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 # volt = deviceTan.read_attribute("Voltage")
                 # volt = deviceTan.attribute_list_query()
                 # volt = deviceTan.state()
-                print("aaa")
-                self.voltageValueSpinBox[i].setMaximum(int(volt.max_value))
 
-                print(volt.min_value)
-                print(volt.max_value)
+                self.voltageValueSpinBox[i].setMaximum(int(volt.max_value))
+                self.voltageValueSpinBox[i].setMinimum(int(volt.min_value))
+                if (int(volt.max_value)>10000):
+                    self.measLCD[i].setDigitCount(5)
+                    self.voltageValueSpinBox[i].setSingleStep(1000)
+                else:
+                    self.voltageValueSpinBox[i].setSingleStep(10)
+                if MDEBUG:
+                    print(volt.min_value)
+                    print(volt.max_value)
 
             except PyTango.DevFailed as exc:
                 self.statusLed[i].setLedColor("red")
@@ -346,21 +356,21 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 print("TESTRUNNING")
 
     def showSettDialog(self):
-        dial = SettingsDialog(self)
+        dial = SettingsDialog(self.timerVal,self)
         dial.show()
         self.settingsButton.setEnabled(False)
         if dial.exec_():
             ntime = dial.getValue()
-            timerval = ntime
+            self.timerVal = ntime*1000
             for i in range(0,len(self.tangoDevices)):
                 if self.tangoDevices[i] != False:
                     if (self.tangoDevices[i].state() == PyTango.DevState.ON
                         or self.tangoDevices[i].state() == PyTango.DevState.RUNNING):
                         if self.timer[i].isActive() == True:
                             self.timer[i].stop()
-                            self.timer[i].start(ntime*1000)
+                            self.timer[i].start(self.timerVal)
                         else:
-                            self.timer[i].start(ntime*1000)
+                            self.timer[i].start(self.timerVal)
             # self.settingsButton.setEnabled(False)
             time.sleep(3) # for
             self.settingsButton.setEnabled(True)
@@ -435,12 +445,12 @@ class deviceInfoDialog(QtGui.QDialog):
 
         vertLayout.addWidget(self.state)
         vertLayout.addWidget(self.status)
-        buttonLayout = QtGui.QHBoxLayout(self)
+        buttonLayout = QtGui.QHBoxLayout()
         buttonLayout.addStretch(0)
         buttonLayout.addWidget(self.buttonOk)
         vertLayout.addLayout(buttonLayout)
 
-        self.setLayout(vertLayout)
+        # self.setLayout(vertLayout)
 
         self.buttonOk.clicked.connect(self.accept)
 
@@ -464,10 +474,10 @@ class MyTimer(QtCore.QTimer):
         QtGui.QTimer.__init__(self, parent)
 
     def timerEvent(self, event):
-        self.emit(QtCore.SIGNAL('timeout(int)'),self.iter)
+        self.emit(QtCore.SIGNAL('timeout(int)'), self.iter)
 
 class SettingsDialog(QtGui.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, tv, parent=None):
         QtGui.QWidget.__init__(self, parent)
         vertLayout = QtGui.QVBoxLayout(self)
         layout1 = QtGui.QHBoxLayout()
@@ -476,7 +486,7 @@ class SettingsDialog(QtGui.QDialog):
         self.timerSpinBox = QtGui.QSpinBox()
         self.timerSpinBox.setMinimum(1)
         self.timerSpinBox.setMaximum(60)
-        self.timerSpinBox.setValue(10)
+        self.timerSpinBox.setValue(tv//1000)
         self.setModal(True)
 
         self.label = QtGui.QLabel()
