@@ -105,7 +105,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.checkActiveBox[i].setFixedWidth(120)
                 self.statusLed[i].setFixedSize(30,30)
         else:
-            horWinSize = 800
+            horWinSize = 900
             vertWinSize = 80 + len(self.devices)*80
             for i in range(0,len(self.devices)):
                 self.measLCD[i].setFixedHeight(70)
@@ -153,8 +153,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for i in range(0,len(self.devices)):
             if len(self.devices) < self.nMaxRows + 1:
                 mainLayout.addLayout(htopLayout[i])
+                self.voltageValueSpinBox[i].setFixedWidth(150)
             if len(self.devices) > self.nMaxRows:
                 mainLayout.addLayout(htopLayout[i],j,k)
+                self.voltageValueSpinBox[i].setFixedWidth(70)
                 k = k + 1
                 if k >= 2:
                     j = j + 1
@@ -306,6 +308,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
                 self.voltageValueSpinBox[i].setMaximum(int(volt.max_value))
                 self.voltageValueSpinBox[i].setMinimum(int(volt.min_value))
+                self.voltageValueSpinBox[i].setSuffix("V")
+                # self.voltageValueSpinBox[i].setFixedWidth(70)
                 if (int(volt.max_value)>10000):
                     self.measLCD[i].setDigitCount(5)
                     self.voltageValueSpinBox[i].setSingleStep(1000)
@@ -416,6 +420,17 @@ class MyTaurusLed(TaurusLed):
 
     def mouseReleaseEvent(self, ev):
         self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)
+
+    # def getFormatedToolTip(self, cache=True):
+    #     """ The tooltip should refer to the device and not the state attribute.
+    #         That is why this method is being rewritten
+    #     """
+    #     if self.modelObj is None:
+    #         return self.getNoneValue()
+    #     parent = self.modelObj.getParentObj()
+    #     if parent is None:
+    #         return self.getNoneValue()
+    #     return self.toolTipObjToStr()
 
 class deviceInfoDialog(QtGui.QDialog):
     def __init__(self,device, parent=None):
