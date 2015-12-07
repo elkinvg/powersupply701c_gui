@@ -271,6 +271,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.tangoDevices[i].command_inout("ChargingOn")
         if self.timer[i].isActive() == False:
             self.timer[i].start(self.timerVal)
+        if(self.setVoltageButton[i].isDown()==True):
+                if MDEBUG:
+                    print("isDown")
+                self.setVoltageButton[i].setDown(False)
         if MDEBUG:
             print("voltage charging on")
 
@@ -475,6 +479,7 @@ class MyQPushButton(QtGui.QPushButton):
 
     def mouseReleaseEvent(self, ev):
         self.emit(QtCore.SIGNAL('clicked(int)'),self.iter)
+        # self.emit(QtCore.SIGNAL('released(int)'),self.iter)
 
 class MyQCheckBox(QtGui.QCheckBox):
     def __init(self, parent):
