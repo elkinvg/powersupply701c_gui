@@ -1,1 +1,1 @@
-python.exe main_ps701c.py
+python.exe -O main_ps701c.py

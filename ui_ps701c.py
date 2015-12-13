@@ -57,7 +57,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkActiveBox = list()
 
         self.timer = list() # список таймеров
-        self.timerVal = timerval
+        self.timerVal = timerval # timer interval
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -235,7 +235,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         result = self.tangoDevices[i].command_inout("CheckAdcOutput")
         if (result != 65535):
             self.measLCD[i].setProperty("intValue", result)
-            print("Result: " + str(result))
+            if MDEBUG:
+                print("Result: " + str(result))
         else:
             self.setEnabledVoltageEdit(i,False)
             if (self.checkActiveBox[i].isChecked()):
@@ -258,7 +259,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
             if self.timer[i].isActive() == False:
-                self.timer[i].start(self.timerVal)
+                self.timer[i].setInterval(self.timerVal)
+                self.timer[i].start(0)
             if MDEBUG:
                 print("charging on")
 
@@ -270,7 +272,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.checkActiveBox[i].setChecked(True)
             self.tangoDevices[i].command_inout("ChargingOn")
         if self.timer[i].isActive() == False:
-            self.timer[i].start(self.timerVal)
+            self.timer[i].setInterval(self.timerVal)
+            self.timer[i].start(0)
         if(self.setVoltageButton[i].isDown()==True):
                 if MDEBUG:
                     print("isDown")
@@ -376,9 +379,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
                         or self.tangoDevices[i].state() == PyTango.DevState.RUNNING):
                         if self.timer[i].isActive() == True:
                             self.timer[i].stop()
-                            self.timer[i].start(self.timerVal)
+                            self.timer[i].setInterval(self.timerVal)
+                            self.timer[i].start(0)
                         else:
-                            self.timer[i].start(self.timerVal)
+                            self.timer[i].setInterval(self.timerVal)
+                            self.timer[i].start(0)
             # self.settingsButton.setEnabled(False)
             time.sleep(3) # for
             self.settingsButton.setEnabled(True)
