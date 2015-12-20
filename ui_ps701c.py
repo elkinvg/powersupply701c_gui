@@ -232,54 +232,68 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def checkADCoutput(self,i):
         if MDEBUG:
             print("check ADC")
-        result = self.tangoDevices[i].command_inout("CheckAdcOutput")
-        if (result != 65535):
-            self.measLCD[i].setProperty("intValue", result)
-            if MDEBUG:
-                print("Result: " + str(result))
-        else:
-            self.setEnabledVoltageEdit(i,False)
-            if (self.checkActiveBox[i].isChecked()):
-                self.checkActiveBox[i].setChecked(False)
-            self.timer[i].stop()
-            if MDEBUG:
-                print("timer STOP")
+        try:
+            result = self.tangoDevices[i].command_inout("CheckAdcOutput")
+            if (result != 65535):
+                self.measLCD[i].setProperty("intValue", result)
+                if MDEBUG:
+                    print("Result: " + str(result))
+                if (self.tangoDevices[i].state()!= PyTango.DevState.RUNNING): #??? Выключение checkActiveBox
+                    if (self.checkActiveBox[i].isChecked()):                  #??? если активный, при полной зарадке
+                        self.checkActiveBox[i].setChecked(False)              #??? конденсатора
+                        self.timer[i].stop()
+                        if MDEBUG:
+                            print("charging OFF. Completed")
+            else:
+                self.setEnabledVoltageEdit(i,False)
+                if (self.checkActiveBox[i].isChecked()):
+                    self.checkActiveBox[i].setChecked(False)
+                self.timer[i].stop()
+                if MDEBUG:
+                    print("timer STOP")
+        except PyTango.DevFailed as exc:
+            self.exceptionDialog(i,exc)
 
     def chargingOnOffCommand(self,i,state):
         if MDEBUG:
             print("ChargingOnOff : " + str(i) + " " + str(state))
-        if (self.checkActiveBox[i].isChecked()):
-            self.checkActiveBox[i].setChecked(False)
-            self.tangoDevices[i].command_inout("ChargingOff")
-            if self.timer[i].isActive() == True:
-                self.timer[i].stop()
-            if MDEBUG:
-                print("charging off")
-        else:
-            self.checkActiveBox[i].setChecked(True)
-            self.tangoDevices[i].command_inout("ChargingOn")
+        try:
+            if (self.checkActiveBox[i].isChecked()):
+                self.tangoDevices[i].command_inout("ChargingOff")
+                self.checkActiveBox[i].setChecked(False)
+                if self.timer[i].isActive() == True:
+                    self.timer[i].stop()
+                if MDEBUG:
+                    print("charging off")
+            else:
+                self.tangoDevices[i].command_inout("ChargingOn")
+                self.checkActiveBox[i].setChecked(True)
+                if self.timer[i].isActive() == False:
+                    self.timer[i].setInterval(self.timerVal)
+                    self.timer[i].start(0)
+                if MDEBUG:
+                    print("charging on")
+        except PyTango.DevFailed as exc:
+            self.exceptionDialog(i,exc)
+
+    def setVoltageAttr(self,i):
+        try:
+            voltage = self.voltageValueSpinBox[i].value()
+            self.tangoDevices[i].write_attribute("Voltage", voltage)
+            if (self.checkActiveBox[i].isChecked() == False):
+                self.tangoDevices[i].command_inout("ChargingOn")
+                self.checkActiveBox[i].setChecked(True)
             if self.timer[i].isActive() == False:
                 self.timer[i].setInterval(self.timerVal)
                 self.timer[i].start(0)
-            if MDEBUG:
-                print("charging on")
-
-
-    def setVoltageAttr(self,i):
-        voltage = self.voltageValueSpinBox[i].value()
-        self.tangoDevices[i].write_attribute("Voltage", voltage)
-        if (self.checkActiveBox[i].isChecked() == False):
-            self.checkActiveBox[i].setChecked(True)
-            self.tangoDevices[i].command_inout("ChargingOn")
-        if self.timer[i].isActive() == False:
-            self.timer[i].setInterval(self.timerVal)
-            self.timer[i].start(0)
-        if(self.setVoltageButton[i].isDown()==True):
+            if(self.setVoltageButton[i].isDown()==True):
                 if MDEBUG:
                     print("isDown")
                 self.setVoltageButton[i].setDown(False)
-        if MDEBUG:
-            print("voltage charging on")
+            if MDEBUG:
+                print("voltage charging on")
+        except PyTango.DevFailed as exc:
+            self.exceptionDialog(i,exc)
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
@@ -414,6 +428,24 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.reconnectButton.setText(_translate("MainWindow", "Reconnect", None))
         self.settingsButton.setText(_translate("MainWindow","Settings",None))
 
+
+    def exceptionDialog(self,i, exc):
+        lenExc = len(tuple(exc))
+        if MDEBUG:
+            print("setVoltage exception")
+        if self.timer[i].isActive() == True:
+            self.timer[i].stop()
+        self.setEnabledVoltageEdit(i,False)
+        mes = QtCore.QString("<b>Exceptions:</b><br><br>")
+        for k in range(0,lenExc):
+            mes = mes + QtCore.QString("Exception"+str(k)+"<br>")
+            mes = mes + QtCore.QString("<b>Reason</b>: " + str(exc.args[k].reason) + "<br>")
+            mes = mes + QtCore.QString("<b>Description</b>: " + str(exc.args[k].desc) + "<br>")
+            mes = mes + QtCore.QString("<b>Origin</b>: " + str(exc.args[k].origin) + "<br>")
+            mes = mes + QtCore.QString("<br>")
+
+        error = QtGui.QMessageBox(QtGui.QMessageBox.Critical,"Error",mes,buttons = QtGui.QMessageBox.Ok)
+        error.exec_()
 
 
     def tempConsoleOut(self,i):

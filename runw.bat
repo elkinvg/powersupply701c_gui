@@ -1,0 +1,1 @@
+start pythonw.exe -O main_ps701c.py
