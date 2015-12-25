@@ -5,6 +5,7 @@ import PyTango
 
 # propertyTreeName = 'devsockets'
 propertyTreeName = 'ps701_devices'
+# propertyTreeName = 'devintango2'
 
 devicesName = list()
 

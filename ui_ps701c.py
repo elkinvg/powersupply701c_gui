@@ -104,6 +104,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             for i in range(0,len(self.devices)):
                 self.checkActiveBox[i].setFixedWidth(120)
                 self.statusLed[i].setFixedSize(30,30)
+                self.voltageValueSpinBox[i].setFixedWidth(70)
         else:
             horWinSize = 900
             vertWinSize = 80 + len(self.devices)*80
@@ -119,7 +120,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 labelFont.setPointSize(10)
                 self.deviceNameLabel[i].setFont(labelFont)
                 self.checkActiveBox[i].setFixedHeight(50)
-                # self.voltageValueSpinBox[i].setPointSize(48)
+                self.voltageValueSpinBox[i].setFixedWidth(150)
             MainWindow.setFixedSize(horWinSize,vertWinSize)
 
     def layouts(self,MainWindow):
@@ -153,10 +154,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for i in range(0,len(self.devices)):
             if len(self.devices) < self.nMaxRows + 1:
                 mainLayout.addLayout(htopLayout[i])
-                self.voltageValueSpinBox[i].setFixedWidth(150)
+                # self.voltageValueSpinBox[i].setFixedWidth(70)
             if len(self.devices) > self.nMaxRows:
                 mainLayout.addLayout(htopLayout[i],j,k)
-                self.voltageValueSpinBox[i].setFixedWidth(70)
+                # self.voltageValueSpinBox[i].setFixedWidth(70)
                 k = k + 1
                 if k >= 2:
                     j = j + 1
