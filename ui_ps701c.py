@@ -92,6 +92,18 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.widgetSizes(MainWindow) # установка размеров виджетов
 
+    def init_val(self,i):
+        try:
+            self.checkADCoutput(i)
+            state = self.tangoDevices[i].command_inout('State')
+            if state == PyTango.DevState.RUNNING:
+                self.checkActiveBox[i].setChecked(True)
+                if self.timer[i].isActive() == False:
+                    self.timer[i].setInterval(self.timerVal)
+                    self.timer[i].start()
+        except PyTango.DevFailed as exc:
+            self.exceptionDialog(i,exc)
+
     def widgetSizes(self,MainWindow):
         if len(self.devices) > self.nMinRowsForDecrSize:
             horSizeBlock = 600
@@ -232,7 +244,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def checkADCoutput(self,i):
         if MDEBUG:
-            print("check ADC")
+            print("check ADC: " + str(i))
         try:
             result = self.tangoDevices[i].command_inout("CheckAdcOutput")
             if (result != 65535):
@@ -271,9 +283,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.checkActiveBox[i].setChecked(True)
                 if self.timer[i].isActive() == False:
                     self.timer[i].setInterval(self.timerVal)
-                    self.timer[i].start(0)
+                    self.timer[i].start()
                 if MDEBUG:
                     print("charging on")
+                    print("TIMERVAL CHARGON: " + str(self.timerVal))
         except PyTango.DevFailed as exc:
             self.exceptionDialog(i,exc)
 
@@ -285,8 +298,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.tangoDevices[i].command_inout("ChargingOn")
                 self.checkActiveBox[i].setChecked(True)
             if self.timer[i].isActive() == False:
+                if MDEBUG:
+                    print("TIMERVAL SETVOLT: " + str(self.timerVal))
                 self.timer[i].setInterval(self.timerVal)
-                self.timer[i].start(0)
+                self.timer[i].start()
             if(self.setVoltageButton[i].isDown()==True):
                 if MDEBUG:
                     print("isDown")
@@ -340,6 +355,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 if MDEBUG:
                     print(volt.min_value)
                     print(volt.max_value)
+
+                self.init_val(i)
 
             except PyTango.DevFailed as exc:
                 self.statusLed[i].setLedColor("red")
@@ -395,10 +412,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
                         if self.timer[i].isActive() == True:
                             self.timer[i].stop()
                             self.timer[i].setInterval(self.timerVal)
-                            self.timer[i].start(0)
+                            self.timer[i].start()
                         else:
                             self.timer[i].setInterval(self.timerVal)
-                            self.timer[i].start(0)
+                            self.timer[i].start()
             # self.settingsButton.setEnabled(False)
             time.sleep(3) # for
             self.settingsButton.setEnabled(True)

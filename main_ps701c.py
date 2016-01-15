@@ -4,7 +4,7 @@ import ui_ps701c
 import PyTango
 
 # propertyTreeName = 'devsockets'
-propertyTreeName = 'ps701_devices'
+propertyTreeName = 'ps701_devices2'
 # propertyTreeName = 'devintango2'
 
 devicesName = list()
