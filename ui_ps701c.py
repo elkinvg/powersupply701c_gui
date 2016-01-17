@@ -96,13 +96,17 @@ class Ui_MainWindow(QtGui.QMainWindow):
         try:
             self.checkADCoutput(i)
             state = self.tangoDevices[i].command_inout('State')
-            if state == PyTango.DevState.RUNNING:
+            if state == PyTango.DevState.RUNNING\
+                    or PyTango.DevState.DISABLE\
+                    or PyTango.DevState.ON:
                 self.checkActiveBox[i].setChecked(True)
                 if self.timer[i].isActive() == False:
                     self.timer[i].setInterval(self.timerVal)
                     self.timer[i].start()
         except PyTango.DevFailed as exc:
             self.exceptionDialog(i,exc)
+
+    # def timerset(self,i):
 
     def widgetSizes(self,MainWindow):
         if len(self.devices) > self.nMinRowsForDecrSize:
@@ -254,7 +258,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 if (self.tangoDevices[i].state()!= PyTango.DevState.RUNNING): #??? Выключение checkActiveBox
                     if (self.checkActiveBox[i].isChecked()):                  #??? если активный, при полной зарадке
                         self.checkActiveBox[i].setChecked(False)              #??? конденсатора
-                        self.timer[i].stop()
+                        # self.timer[i].stop() # ??? timer
                         if MDEBUG:
                             print("charging OFF. Completed")
             else:
@@ -274,8 +278,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             if (self.checkActiveBox[i].isChecked()):
                 self.tangoDevices[i].command_inout("ChargingOff")
                 self.checkActiveBox[i].setChecked(False)
-                if self.timer[i].isActive() == True:
-                    self.timer[i].stop()
+                # if self.timer[i].isActive() == True: # ??? timer
+                #     self.timer[i].stop()
                 if MDEBUG:
                     print("charging off")
             else:
@@ -313,7 +317,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
-            if self.tangoDevices[i] != False and self.tangoDevices[i].state()!= PyTango.DevState.ON:
+            if self.tangoDevices[i] != False and (
+                        self.tangoDevices[i].state() == PyTango.DevState.FAULT or self.tangoDevices[i].state() == PyTango.DevState.OFF):
                 self.tangoDevices[i].command_inout("Init")
                 self.checkStatus(self.tangoDevices[i],i)
                 if MDEBUG:
@@ -408,7 +413,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
             for i in range(0,len(self.tangoDevices)):
                 if self.tangoDevices[i] != False:
                     if (self.tangoDevices[i].state() == PyTango.DevState.ON
-                        or self.tangoDevices[i].state() == PyTango.DevState.RUNNING):
+                        or self.tangoDevices[i].state() == PyTango.DevState.RUNNING)\
+                            or self.tangoDevices[i].state() == PyTango.DevState.DISABLE:
                         if self.timer[i].isActive() == True:
                             self.timer[i].stop()
                             self.timer[i].setInterval(self.timerVal)
