@@ -22,7 +22,7 @@ from taurus.qt.qtgui.display import TaurusLCD
 # from taurus.qt.qtgui.input import TaurusValueSpinBox
 import time
 
-MDEBUG = True
+MDEBUG = False
 timerval = 10000
 
 try:
@@ -320,9 +320,12 @@ class Ui_MainWindow(QtGui.QMainWindow):
             if self.tangoDevices[i] != False and (
                         self.tangoDevices[i].state() == PyTango.DevState.FAULT or self.tangoDevices[i].state() == PyTango.DevState.OFF):
                 self.tangoDevices[i].command_inout("Init")
-                self.checkStatus(self.tangoDevices[i],i)
+
                 if MDEBUG:
                     print("reInit")
+            self.checkStatus(self.tangoDevices[i],i)
+            if MDEBUG:
+                print("checkStatus")
 
     def initTangoDevices(self):
         if len(self.devices) < 1:
@@ -387,11 +390,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
             else:
                 self.setEnabledVoltageEdit(i,False)
         elif deviceTan.state() == PyTango.DevState.ON:
+            self.setEnabledVoltageEdit(i,True)
             if MDEBUG:
                 self.statusLed[i].setToolTip("TESTON") # ??? test
                 print("TESTON")
-            else:
-                self.setEnabledVoltageEdit(i,True)
+
         elif deviceTan.state() == PyTango.DevState.DISABLE:
             self.setEnabledVoltageEdit(i,False)
             if MDEBUG:
