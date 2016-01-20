@@ -13,13 +13,10 @@ from PyQt4 import QtCore, QtGui
 import PyTango
 from PyTango import Except
 
-# from datetime import datetime
-# import os.path
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
-# from taurus.qt.qtgui.input import TaurusWheelEdit
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
-# from taurus.qt.qtgui.input import TaurusValueSpinBox
+
 import time
 
 MDEBUG = False
@@ -96,10 +93,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         try:
             self.checkADCoutput(i)
             state = self.tangoDevices[i].command_inout('State')
-            if state == PyTango.DevState.RUNNING:#\
-                    # or PyTango.DevState.DISABLE\
-                    # or PyTango.DevState.ON:
+            if state == PyTango.DevState.RUNNING:
                 self.checkActiveBox[i].setChecked(True)
+            if state == PyTango.DevState.DISABLE:
+                self.checkActiveBox[i].setEnabled(False)
                 if self.timer[i].isActive() == False:
                     self.timer[i].setInterval(self.timerVal)
                     self.timer[i].start()
@@ -109,7 +106,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
     # def timerset(self,i):
 
     def widgetSizes(self,MainWindow):
-        if len(self.devices) > self.nMinRowsForDecrSize:
+        # установка размера виджетов в зависимости от количества
+        if len(self.devices) > self.nMinRowsForDecrSize: # минимальное число строк для изменения размера
             horSizeBlock = 600
             if len(self.devices) > self.nMaxRows:
                 vertWinSize = 50 + len(self.devices)*50/2
@@ -140,6 +138,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
             MainWindow.setFixedSize(horWinSize,vertWinSize)
 
     def layouts(self,MainWindow):
+        # установка layouts в зависимости от количества девайсов
         if len(self.devices) < self.nMaxRows + 1:
             mainLayout = QtGui.QVBoxLayout()
         if len(self.devices) > self.nMaxRows:
@@ -191,6 +190,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         centralWidget.setLayout(mainLayout)
 
     def setWidgetView(self,i):
+        # установка вида для виджетов
         self.statusLed.append(MyTaurusLed(self))
         self.statusLed[i].iter = i
         self.statusLed[i].setModel(str(self.devices[i]) + "/State")
@@ -234,10 +234,15 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.checkActiveBox[i].setChecked(False)
 
     def setSignalHandler(self,i):
+        # установка обработчиков для событий
         # self.reconnectButton.clicked.connect(self.reconnectCommand)
+        # события клика по кнопке установки напряжения
         self.connect(self.setVoltageButton[i],QtCore.SIGNAL("clicked(int)"),self.setVoltageAttr)
+        # события изменения для бокса активного состояния
         self.connect(self.checkActiveBox[i], QtCore.SIGNAL("stateChanged(int,int)"),self.chargingOnOffCommand)
+        # события таймера
         self.connect(self.timer[i],QtCore.SIGNAL("timeout(int)"),self.checkADCoutput)
+        # события клика по лампочке состояния
         self.connect(self.statusLed[i],QtCore.SIGNAL("clicked(int)"),self.statusLedInfo)
 
     def statusLedInfo(self,i):
@@ -250,6 +255,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if MDEBUG:
             print("check ADC: " + str(i))
         try:
+            self.tangoDevices[i].command_inout("CheckPSState") # таймеры выставлены в девайсах
             result = self.tangoDevices[i].command_inout("CheckAdcOutput")
             if (result != 65535):
                 self.measLCD[i].setProperty("intValue", result)
@@ -263,6 +269,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                             print("charging OFF. Completed")
                 if (self.tangoDevices[i].state()== PyTango.DevState.DISABLE):
                     isActive = self.tangoDevices[i].read_attribute("isActive")
+                    self.checkActiveBox[i].setEnabled(False)
                     self.checkActiveBox[i].setChecked(isActive.value)
             else:
                 self.setEnabledVoltageEdit(i,False)
@@ -275,11 +282,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
             self.exceptionDialog(i,exc)
 
     def chargingOnOffCommand(self,i,state):
+        # включить/выключить режим заряда
         if MDEBUG:
             print("ChargingOnOff : " + str(i) + " " + str(state))
         try:
             if (self.checkActiveBox[i].isChecked()):
                 self.tangoDevices[i].command_inout("ChargingOff")
+                # ??? нужна ли проверка бита активного состояния перед setChecked
                 self.checkActiveBox[i].setChecked(False)
                 # if self.timer[i].isActive() == True: # ??? timer
                 #     self.timer[i].stop()
@@ -287,6 +296,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                     print("charging off")
             else:
                 self.tangoDevices[i].command_inout("ChargingOn")
+                # ??? нужна ли проверка бита активного состояния перед setChecked
                 self.checkActiveBox[i].setChecked(True)
                 if self.timer[i].isActive() == False:
                     self.timer[i].setInterval(self.timerVal)
@@ -301,7 +311,10 @@ class Ui_MainWindow(QtGui.QMainWindow):
         try:
             voltage = self.voltageValueSpinBox[i].value()
             self.tangoDevices[i].write_attribute("Voltage", voltage)
-            if (self.checkActiveBox[i].isChecked() == False):
+            state = self.tangoDevices[i].command_inout('State')
+            # если тумблер не на внешнем управлении и если
+            # если не включён заряд, включить
+            if (self.checkActiveBox[i].isChecked() == False and state != PyTango.DevState.DISABLE):
                 self.tangoDevices[i].command_inout("ChargingOn")
                 self.checkActiveBox[i].setChecked(True)
             if self.timer[i].isActive() == False:
@@ -398,7 +411,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 print("TESTON")
 
         elif deviceTan.state() == PyTango.DevState.DISABLE:
-            self.setEnabledVoltageEdit(i,False)
+            self.voltageValueSpinBox[iter].setEnabled(False)
+            self.setVoltageButton[i].setEnabled(True)
+            self.voltageValueSpinBox[i].setEnabled(True)
             if MDEBUG:
                 self.statusLed[i].setToolTip("TESTDISABLE") # ??? test
                 print("TESTDISABLE")
