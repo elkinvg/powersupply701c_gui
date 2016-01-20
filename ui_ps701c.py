@@ -96,9 +96,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
         try:
             self.checkADCoutput(i)
             state = self.tangoDevices[i].command_inout('State')
-            if state == PyTango.DevState.RUNNING\
-                    or PyTango.DevState.DISABLE\
-                    or PyTango.DevState.ON:
+            if state == PyTango.DevState.RUNNING:#\
+                    # or PyTango.DevState.DISABLE\
+                    # or PyTango.DevState.ON:
                 self.checkActiveBox[i].setChecked(True)
                 if self.timer[i].isActive() == False:
                     self.timer[i].setInterval(self.timerVal)
@@ -261,6 +261,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
                         # self.timer[i].stop() # ??? timer
                         if MDEBUG:
                             print("charging OFF. Completed")
+                if (self.tangoDevices[i].state()== PyTango.DevState.DISABLE):
+                    isActive = self.tangoDevices[i].read_attribute("isActive")
+                    self.checkActiveBox[i].setChecked(isActive.value)
             else:
                 self.setEnabledVoltageEdit(i,False)
                 if (self.checkActiveBox[i].isChecked()):
@@ -317,8 +320,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
     def reconnectCommand(self):
         for i in range(0,len(self.tangoDevices)):
-            if self.tangoDevices[i] != False and (
-                        self.tangoDevices[i].state() == PyTango.DevState.FAULT or self.tangoDevices[i].state() == PyTango.DevState.OFF):
+            if self.tangoDevices[i] != False and (self.tangoDevices[i].state() == PyTango.DevState.FAULT or self.tangoDevices[i].state() == PyTango.DevState.OFF):
                 self.tangoDevices[i].command_inout("Init")
 
                 if MDEBUG:
