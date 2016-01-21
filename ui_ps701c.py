@@ -20,7 +20,7 @@ from taurus.qt.qtgui.display import TaurusLCD
 import time
 
 MDEBUG = False
-timerval = 10000
+timerval = 1000
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -97,9 +97,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.checkActiveBox[i].setChecked(True)
             if state == PyTango.DevState.DISABLE:
                 self.checkActiveBox[i].setEnabled(False)
-                if self.timer[i].isActive() == False:
-                    self.timer[i].setInterval(self.timerVal)
-                    self.timer[i].start()
+            if self.timer[i].isActive() == False:
+                self.timer[i].setInterval(self.timerVal)
+                self.timer[i].start()
         except PyTango.DevFailed as exc:
             self.exceptionDialog(i,exc)
 
@@ -259,7 +259,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
             result = self.tangoDevices[i].command_inout("CheckAdcOutput")
             if (result != 65535):
                 self.measLCD[i].setProperty("intValue", result)
+                isActive = self.tangoDevices[i].read_attribute("isActive")
                 if MDEBUG:
+                    print (str(self.tangoDevices[i].state()))
                     print("Result: " + str(result))
                 if (self.tangoDevices[i].state()!= PyTango.DevState.RUNNING): #??? Выключение checkActiveBox
                     if (self.checkActiveBox[i].isChecked()):                  #??? если активный, при полной зарадке
@@ -267,10 +269,28 @@ class Ui_MainWindow(QtGui.QMainWindow):
                         # self.timer[i].stop() # ??? timer
                         if MDEBUG:
                             print("charging OFF. Completed")
+                if (self.tangoDevices[i].state()== PyTango.DevState.RUNNING): #??? Выключение checkActiveBox
+                    if (self.checkActiveBox[i].isChecked()==False):                  #??? если активный, при полной зарадке
+                        self.checkActiveBox[i].setChecked(True)              #??? конденсатора
+                        # self.timer[i].stop() # ??? timer
+                        if MDEBUG:
+                            print("State Running. setChecked(True)")
                 if (self.tangoDevices[i].state()== PyTango.DevState.DISABLE):
-                    isActive = self.tangoDevices[i].read_attribute("isActive")
+
                     self.checkActiveBox[i].setEnabled(False)
                     self.checkActiveBox[i].setChecked(isActive.value)
+                elif (self.tangoDevices[i].state()!= PyTango.DevState.OFF or self.tangoDevices[i].state()!= PyTango.DevState.FAULT):
+                    if (self.checkActiveBox[i].isEnabled() == False):
+                        self.checkActiveBox[i].setEnabled(True)
+                    self.checkActiveBox[i].setChecked(isActive.value)
+                else:
+                    if (self.checkActiveBox[i].isEnabled() == True):
+                        self.checkActiveBox[i].setEnabled(False)
+                    self.checkActiveBox[i].setChecked(isActive.value)
+
+
+
+
             else:
                 self.setEnabledVoltageEdit(i,False)
                 if (self.checkActiveBox[i].isChecked()):
@@ -290,8 +310,9 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 self.tangoDevices[i].command_inout("ChargingOff")
                 # ??? нужна ли проверка бита активного состояния перед setChecked
                 self.checkActiveBox[i].setChecked(False)
-                # if self.timer[i].isActive() == True: # ??? timer
-                #     self.timer[i].stop()
+                if self.timer[i].isActive() == False: # ??? timer
+                    self.timer[i].setInterval(self.timerVal)
+                    self.timer[i].start()
                 if MDEBUG:
                     print("charging off")
             else:
@@ -411,7 +432,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
                 print("TESTON")
 
         elif deviceTan.state() == PyTango.DevState.DISABLE:
-            self.voltageValueSpinBox[iter].setEnabled(False)
+            self.voltageValueSpinBox[i].setEnabled(False)
             self.setVoltageButton[i].setEnabled(True)
             self.voltageValueSpinBox[i].setEnabled(True)
             if MDEBUG:
