@@ -2,10 +2,10 @@
 from PyQt4 import QtGui
 import ui_ps701c
 import PyTango
+import sett
 
-# propertyTreeName = 'devsockets'
-propertyTreeName = 'ps701_devices2'
-# propertyTreeName = 'devintango2'
+
+propertyTreeName = sett.propertyTreeName
 
 devicesName = list()
 

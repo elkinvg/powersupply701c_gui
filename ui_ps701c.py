@@ -18,9 +18,11 @@ from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.display import TaurusLCD
 
 import time
+import sett
 
-MDEBUG = False
-timerval = 1000
+MDEBUG = sett.MDEBUG
+#MDEBUG = False
+timerval = sett.timerval
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
